@@ -8,6 +8,8 @@ import {
   where
 } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
+/* ---------------- FIREBASE ---------------- */
+
 const firebaseConfig = {
   apiKey: "AIzaSyBv8Iap6L0Zz8U_0k3tQ-Bkb6KI9vGDbtI",
   authDomain: "prosper-e5c0d.firebaseapp.com",
@@ -21,18 +23,17 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const bookingsRef = collection(db, "bookings");
 
+/* ---------------- ELEMENTS ---------------- */
+
 const slotsDiv = document.getElementById("times");
-const dateInput = document.getElementById("datePicker");
+const serviceSelect = document.getElementById("service");
+const subServiceSelect = document.getElementById("subService");
+const subContainer = document.getElementById("subServiceContainer");
 
 let selectedTime = null;
 let selectedDate = null;
 
-/* ----------------- SERVICE DROPDOWNS ----------------- */
-
-const serviceSelect = document.getElementById("service");
-const subServiceSelect = document.getElementById("subService");
-const subContainer = document.getElementById("subServiceContainer");
-const subLabel = document.getElementById("subLabel");
+/* ---------------- SERVICES ---------------- */
 
 const serviceOptions = {
   "Pressure Cleaning": ["Driveway","Car","Bin","Boat"],
@@ -41,8 +42,8 @@ const serviceOptions = {
 };
 
 serviceSelect.onchange = () => {
-  const selected = serviceSelect.value;
 
+  const selected = serviceSelect.value;
   subServiceSelect.innerHTML = "";
 
   if (!serviceOptions[selected]) {
@@ -60,55 +61,80 @@ serviceSelect.onchange = () => {
   });
 };
 
-/* ----------------- CALENDAR ----------------- */
+/* ---------------- CALENDAR ---------------- */
 
 flatpickr("#datePicker", {
   minDate: "today",
   dateFormat: "Y-m-d",
-  disable: [
-    function(date) {
-      return (date.getDay() !== 0 && date.getDay() !== 6);
-    }
-  ],
+
   onChange: async function(selectedDates, dateStr) {
 
     selectedDate = dateStr;
-    slotsDiv.innerHTML = "";
     selectedTime = null;
+    slotsDiv.innerHTML = "Loading times...";
 
+    const chosenDate = new Date(dateStr);
+    const day = chosenDate.getDay();
+
+    let allowedSlots = [];
+
+    // WEEKENDS → full day
+    if (day === 0 || day === 6) {
+      for (let h = 9; h < 17; h++) {
+        allowedSlots.push(`${String(h).padStart(2,"0")}:00`);
+        allowedSlots.push(`${String(h).padStart(2,"0")}:30`);
+      }
+    }
+
+    // MONDAY, WEDNESDAY, THURSDAY → 4pm–5pm only
+    else if (day === 1 || day === 3 || day === 4) {
+      allowedSlots = ["16:00","16:30"];
+    }
+
+    // OTHER DAYS → no booking
+    else {
+      slotsDiv.innerHTML = "No availability on this day.";
+      return;
+    }
+
+    // check booked times in Firebase
     const q = query(bookingsRef, where("date", "==", dateStr));
     const snapshot = await getDocs(q);
 
     const booked = [];
     snapshot.forEach(doc => booked.push(doc.data().time));
 
-    for (let h = 9; h < 17; h++) {
-      ["00","30"].forEach(m => {
-        const time = `${h.toString().padStart(2,"0")}:${m}`;
-        if (booked.includes(time)) return;
+    slotsDiv.innerHTML = "";
 
-        const div = document.createElement("div");
-        div.className = "time";
-        div.textContent = time;
+    allowedSlots.forEach(time => {
 
-        div.onclick = () => {
-          document.querySelectorAll(".time").forEach(s => s.classList.remove("selected"));
-          div.classList.add("selected");
-          selectedTime = time;
-        };
+      if (booked.includes(time)) return;
 
-        slotsDiv.appendChild(div);
-      });
+      const div = document.createElement("div");
+      div.className = "time";
+      div.textContent = time;
+
+      div.onclick = () => {
+        document.querySelectorAll(".time").forEach(s => s.classList.remove("selected"));
+        div.classList.add("selected");
+        selectedTime = time;
+      };
+
+      slotsDiv.appendChild(div);
+    });
+
+    if (slotsDiv.innerHTML === "") {
+      slotsDiv.innerHTML = "All times are booked.";
     }
   }
 });
 
-/* ----------------- BOOK BUTTON ----------------- */
+/* ---------------- BOOK BUTTON ---------------- */
 
 document.getElementById("book").onclick = async () => {
 
-  const name = document.getElementById("bookingName").value;
-  const phone = document.getElementById("bookingPhone").value;
+  const name = document.getElementById("bookingName").value.trim();
+  const phone = document.getElementById("bookingPhone").value.trim();
   const service = serviceSelect.value;
   const subService = subServiceSelect.value;
 
@@ -128,6 +154,5 @@ document.getElementById("book").onclick = async () => {
   });
 
   alert("Booking Confirmed! I will contact you shortly.");
-
   location.reload();
 };
