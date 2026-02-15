@@ -1,0 +1,380 @@
+// Simple Booking App (single-file Node.js server)
+// -----------------------------------------------
+// Features:
+// - Shows available time slots (configurable hours & duration)
+// - Prevents double bookings
+// - Stores bookings in SQLite (local file: bookings.db)
+// - Simple client form (name, email, phone)
+//
+// Setup:
+// 1) Install Node.js (v18+)
+// 2) In this folder run:
+//    npm init -y
+//    npm install express better-sqlite3
+// 3) Start server:
+//    node server.js
+// 4) Open http://localhost:3000
+
+const express = require('express');
+const Database = require('better-sqlite3');
+
+// ---- CONFIG ----
+const PORT = 3000;
+const BUSINESS_HOURS = { start: '09:00', end: '17:00' }; // change to your hours
+const SLOT_MINUTES = 30; // appointment length
+const BUFFER_MINUTES = 0; // gap between appointments
+// -----------------
+
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// DB setup
+const db = new Database('bookings.db');
+db.exec(`
+  CREATE TABLE IF NOT EXISTS bookings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT,
+    phone TEXT,
+    date TEXT NOT NULL,     -- YYYY-MM-DD
+    time TEXT NOT NULL,     -- HH:MM (24h)
+    created_at TEXT NOT NULL
+  );
+`);
+
+// Helpers
+function toMinutes(hhmm) {
+  const [h, m] = hhmm.split(':').map(Number);
+  return h * 60 + m;
+}
+function toHHMM(mins) {
+  const h = Math.floor(mins / 60).toString().padStart(2, '0');
+  const m = (mins % 60).toString().padStart(2, '0');
+  return `${h}:${m}`;
+}
+
+function generateAllSlots() {
+  const start = toMinutes(BUSINESS_HOURS.start);
+  const end = toMinutes(BUSINESS_HOURS.end);
+  const step = SLOT_MINUTES + BUFFER_MINUTES;
+  const slots = [];
+  for (let t = start; t + SLOT_MINUTES <= end; t += step) {
+    slots.push(toHHMM(t));
+  }
+  return slots;
+}
+
+function isToday(dateStr) {
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10);
+  return dateStr === today;
+}
+
+function filterPastTodaySlots(dateStr, slots) {
+  if (!isToday(dateStr)) return slots;
+  const now = new Date();
+  const currentMins = now.getHours() * 60 + now.getMinutes();
+  return slots.filter((s) => toMinutes(s) > currentMins + 15); // 15-min lead time
+}
+
+// API: get available slots for a date
+app.get('/api/slots', (req, res) => {
+  const { date } = req.query; // YYYY-MM-DD
+  if (!date) return res.status(400).json({ error: 'Missing date' });
+
+  const all = generateAllSlots();
+  const booked = db.prepare('SELECT time FROM bookings WHERE date = ?').all(date).map(r => r.time);
+  let available = all.filter(t => !booked.includes(t));
+  available = filterPastTodaySlots(date, available);
+
+  res.json({ date, slots: available });
+});
+
+// API: create booking
+app.post('/api/book', (req, res) => {
+  const { name, email, phone, date, time } = req.body;
+  if (!name || !date || !time) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  // prevent double booking
+  const exists = db.prepare('SELECT id FROM bookings WHERE date = ? AND time = ?').get(date, time);
+  if (exists) {
+    return res.status(409).json({ error: 'Time already booked' });
+  }
+
+  db.prepare(`
+    INSERT INTO bookings (name, email, phone, date, time, created_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(name, email || '', phone || '', date, time, new Date().toISOString());
+
+  res.json({ ok: true });
+});
+
+// Admin: view bookings (simple)
+app.get('/admin', (req, res) => {
+  const rows = db.prepare('SELECT * FROM bookings ORDER BY date, time').all();
+  const list = rows.map(r => `<tr><td>${r.date}</td><td>${r.time}</td><td>${r.name}</td><td>${r.phone||''}</td><td>${r.email||''}</td></tr>`).join('');
+  res.send(`<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Book an Appointment</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+/* Reset & Base */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{display:flex;flex-direction:column;min-height:100vh;font-family:'Poppins',sans-serif;background-color:#f7f7f7;color:#333;line-height:1.6}
+main{flex:1}
+input:focus,textarea:focus,button:focus,a:focus{outline:none;box-shadow:none}
+header{background:linear-gradient(135deg,#1e3c72,#2a5298);color:#fff;text-align:center;padding:100px 20px;box-shadow:0 10px 30px rgba(0,0,0,.1)}
+header h1{font-size:3.5em;margin-bottom:20px}
+header p{font-size:1.5em;margin-bottom:30px}
+.btn{background-color:#e74c3c;color:#fff;padding:15px 30px;text-decoration:none;border-radius:30px;font-size:1.2em;transition:all .3s ease;display:inline-block}
+.btn:hover{background-color:#c0392b;transform:scale(1.08)}
+.section{padding:60px 20px}
+.container{max-width:900px;margin:0 auto}
+.card{background:#fff;border-radius:14px;box-shadow:0 10px 25px rgba(0,0,0,.08);padding:24px}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+input,select,button{padding:12px;border-radius:10px;border:1px solid #ddd;font-size:16px}
+button.primary{background:#1e3a8a;color:#fff;border:none;cursor:pointer}
+button.primary:disabled{opacity:.6;cursor:not-allowed}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px;margin-top:16px}
+.slot{padding:12px;border:1px solid #ddd;border-radius:12px;text-align:center;cursor:pointer;transition:all .2s}
+.slot:hover{border-color:#2a5298;transform:translateY(-2px)}
+.slot.selected{background:#2a5298;color:#fff;border-color:#2a5298}
+.muted{color:#6b7280}
+.ok{color:#16a34a}
+.err{color:#dc2626}
+footer{background-color:#2c3e50;color:#fff;text-align:center;padding:20px}
+</style>
+</head>
+<body>
+  <header>
+    <h1>Book Your Appointment</h1>
+    <p>Choose a time that suits you — instant confirmation.</p>
+    <a href="#booking" class="btn">Book Now</a>
+  </header>
+
+  <main>
+    <section id="booking" class="section">
+  <div class="container">
+    <div class="card calendar-card">
+      <h2 class="cal-title">Select a Date & Time</h2>
+      <div class="calendar-layout">
+        <div class="calendar-left">
+          <div class="month-nav">
+            <button id="prevMonth">&#8249;</button>
+            <div id="monthLabel"></div>
+            <button id="nextMonth">&#8250;</button>
+          </div>
+          <div class="weekdays">
+            <span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span>
+          </div>
+          <div id="calendarGrid" class="calendar-grid"></div>
+          <div class="timezone">🌍 Australia/Perth</div>
+        </div>
+        <div class="calendar-right">
+          <h3 id="selectedDateLabel">Select a date</h3>
+          <div id="slots" class="slots vertical"></div>
+        </div>
+      </div>
+
+      <h3 style="margin-top:24px">Your Details</h3>
+      <div class="row">
+        <input placeholder="Full name" id="name" />
+        <input placeholder="Phone" id="phone" />
+        <input placeholder="Email (optional)" id="email" />
+      </div>
+      <div style="margin-top:14px">
+        <button id="book" class="primary" disabled>Confirm Booking</button>
+        <span id="msg" style="margin-left:10px"></span>
+      </div>
+    </div>
+  </div>
+</section>
+  </main>
+
+  <footer>
+    <p>&copy; ${new Date().getFullYear()} Your Business</p>
+  </footer>
+
+<script>
+  const dateEl = document.getElementById('date');
+  const loadBtn = document.getElementById('load');
+  const slotsEl = document.getElementById('slots');
+  const bookBtn = document.getElementById('book');
+  const msg = document.getElementById('msg');
+  let selectedTime = null;
+
+  const today = new Date().toISOString().slice(0,10);
+  dateEl.min = today;
+
+  loadBtn.onclick = async () => {
+    msg.textContent = '';
+    selectedTime = null; bookBtn.disabled = true;
+    slotsEl.innerHTML = 'Loading...';
+    const date = dateEl.value;
+    if (!date) { slotsEl.innerHTML = 'Please select a date.'; return; }
+    const res = await fetch('/api/slots?date=' + date);
+    const data = await res.json();
+    slotsEl.innerHTML = '';
+    if (!data.slots || data.slots.length === 0) {
+      slotsEl.innerHTML = '<span class="muted">No times available.</span>';
+      return;
+    }
+    data.slots.forEach(t => {
+      const d = document.createElement('div');
+      d.className = 'slot';
+      d.textContent = t;
+      d.onclick = () => {
+        document.querySelectorAll('.slot').forEach(s=>s.classList.remove('selected'));
+        d.classList.add('selected');
+        selectedTime = t; bookBtn.disabled = false;
+      };
+      slotsEl.appendChild(d);
+    });
+  };
+
+  bookBtn.onclick = async () => {
+    const name = document.getElementById('name').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const date = dateEl.value;
+    if (!name || !date || !selectedTime) return;
+    bookBtn.disabled = true; msg.textContent = 'Saving...';
+    const res = await fetch('/api/book', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ name, phone, email, date, time: selectedTime })
+    });
+    if (res.ok) {
+      msg.textContent = 'Booked! We have saved your appointment.'; msg.className='ok';
+      loadBtn.click();
+    } else {
+      const d = await res.json().catch(()=>({error:'Error'}));
+      msg.textContent = d.error || 'Error'; msg.className='err';
+    }
+    bookBtn.disabled = false;
+  };
+</script>
+</body>
+</html>`);
+});
+
+// Frontend page
+app.get('/', (req, res) => {
+  res.send(`<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Book an Appointment</title>
+<style>
+  :root{--brand:#0ea5e9}
+  body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:0;background:#f5f7fb}
+  .wrap{max-width:720px;margin:40px auto;background:#fff;padding:24px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+  h1{margin-top:0}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  input,button,select{padding:12px;border-radius:10px;border:1px solid #ddd;font-size:16px}
+  button{background:var(--brand);color:#fff;border:none;cursor:pointer}
+  button:disabled{opacity:.6;cursor:not-allowed}
+  .slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-top:14px}
+  .slot{padding:10px;border:1px solid #ddd;border-radius:12px;text-align:center;cursor:pointer}
+  .slot:hover{border-color:var(--brand)}
+  .slot.selected{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .muted{color:#6b7280}
+  .ok{color:#16a34a}
+  .err{color:#dc2626}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Book an Appointment</h1>
+    <p class="muted">Choose a date and time, then enter your details.</p>
+    <div class="row">
+      <input type="date" id="date" />
+      <button id="load">Check Availability</button>
+    </div>
+    <div id="slots" class="slots"></div>
+
+    <h3 style="margin-top:22px">Your details</h3>
+    <div class="row">
+      <input placeholder="Full name" id="name" />
+      <input placeholder="Phone" id="phone" />
+      <input placeholder="Email (optional)" id="email" />
+    </div>
+    <div style="margin-top:14px">
+      <button id="book" disabled>Confirm Booking</button>
+      <span id="msg" style="margin-left:10px"></span>
+    </div>
+  </div>
+
+<script>
+  const dateEl = document.getElementById('date');
+  const loadBtn = document.getElementById('load');
+  const slotsEl = document.getElementById('slots');
+  const bookBtn = document.getElementById('book');
+  const msg = document.getElementById('msg');
+  let selectedTime = null;
+
+  // set min date = today
+  const today = new Date().toISOString().slice(0,10);
+  dateEl.min = today;
+
+  loadBtn.onclick = async () => {
+    msg.textContent = '';
+    selectedTime = null; bookBtn.disabled = true;
+    slotsEl.innerHTML = 'Loading...';
+    const date = dateEl.value;
+    if (!date) { slotsEl.innerHTML = 'Please select a date.'; return; }
+    const res = await fetch('/api/slots?date=' + date);
+    const data = await res.json();
+    slotsEl.innerHTML = '';
+    if (!data.slots || data.slots.length === 0) {
+      slotsEl.innerHTML = '<span class="muted">No times available.</span>';
+      return;
+    }
+    data.slots.forEach(t => {
+      const d = document.createElement('div');
+      d.className = 'slot';
+      d.textContent = t;
+      d.onclick = () => {
+        document.querySelectorAll('.slot').forEach(s=>s.classList.remove('selected'));
+        d.classList.add('selected');
+        selectedTime = t; bookBtn.disabled = false;
+      };
+      slotsEl.appendChild(d);
+    });
+  };
+
+  bookBtn.onclick = async () => {
+    const name = document.getElementById('name').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const date = dateEl.value;
+    if (!name || !date || !selectedTime) return;
+    bookBtn.disabled = true; msg.textContent = 'Saving...';
+    const res = await fetch('/api/book', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ name, phone, email, date, time: selectedTime })
+    });
+    if (res.ok) {
+      msg.textContent = 'Booked! We have saved your appointment.'; msg.className='ok';
+      loadBtn.click();
+    } else {
+      const d = await res.json().catch(()=>({error:'Error'}));
+      msg.textContent = d.error || 'Error'; msg.className='err';
+    }
+    bookBtn.disabled = false;
+  };
+</script>
+</body>
+</html>`);
+});
+
+app.listen(PORT, () => {
+  console.log(`Booking app running at http://localhost:${PORT}`);
+});
