@@ -83,6 +83,39 @@ width:100%;
 button:hover{
 background:#354edb;
 }
+  /* ===== CALENDAR AVAILABILITY COLOURS ===== */
+
+/* make each day a circle */
+.flatpickr-day{
+border-radius:50% !important;
+}
+
+/* FULL availability (green) */
+.flatpickr-day.available-full{
+background:#28c76f !important;
+color:white !important;
+border:none !important;
+}
+
+/* SOME availability (yellow) */
+.flatpickr-day.available-some{
+background:#ffcc00 !important;
+color:black !important;
+border:none !important;
+}
+
+/* NO availability (red) */
+.flatpickr-day.available-none{
+background:#ff4d4f !important;
+color:white !important;
+border:none !important;
+}
+
+/* today outline (still visible) */
+.flatpickr-day.today{
+border:2px solid #4f6cff !important;
+}
+
 </style>
 </head>
 
