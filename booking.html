@@ -4,7 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Book a Service - Prosper's Services</title>
-<link rel="stylesheet" href="styles.css">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<!-- Calendar CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+<!-- Calendar JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
 <style>
 body{
@@ -25,48 +32,28 @@ box-shadow:0 10px 30px rgba(0,0,0,0.1);
 
 h1{
 text-align:center;
-margin-bottom:20px;
-}
-
-.calendar{
-display:grid;
-grid-template-columns:repeat(7,1fr);
-gap:10px;
 margin-bottom:25px;
-}
-
-.day{
-padding:12px;
-background:#eef2ff;
-border-radius:8px;
-text-align:center;
-cursor:pointer;
-transition:.2s;
-}
-
-.day:hover{
-background:#4f6cff;
-color:white;
-}
-
-.day.selected{
-background:#4f6cff;
-color:white;
 }
 
 .times{
 display:grid;
 grid-template-columns:repeat(3,1fr);
-gap:10px;
+gap:12px;
 margin-bottom:25px;
 }
 
 .time{
-padding:12px;
+padding:14px;
 border:2px solid #4f6cff;
-border-radius:8px;
+border-radius:10px;
 text-align:center;
 cursor:pointer;
+transition:0.2s;
+}
+
+.time:hover{
+background:#4f6cff;
+color:white;
 }
 
 .time.selected{
@@ -74,11 +61,11 @@ background:#4f6cff;
 color:white;
 }
 
-form input, form button{
+input{
 width:100%;
-padding:12px;
-margin-top:10px;
-border-radius:8px;
+padding:14px;
+margin-top:12px;
+border-radius:10px;
 border:1px solid #ccc;
 font-size:16px;
 }
@@ -88,18 +75,22 @@ background:#4f6cff;
 color:white;
 border:none;
 cursor:pointer;
+padding:14px;
+margin-top:15px;
+border-radius:10px;
+font-size:16px;
 }
 
 button:hover{
 background:#354edb;
 }
+
+#msg{
+margin-top:15px;
+font-weight:600;
+text-align:center;
+}
 </style>
-  <!-- Calendar CSS -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-
-<!-- Calendar JS -->
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
 </head>
 
 <body>
@@ -108,7 +99,7 @@ background:#354edb;
 <h1>Book Your Service</h1>
 
 <h3>Select a Date</h3>
-<div id="calendar" class="calendar"></div>
+<input id="datePicker" placeholder="Click to select a date" readonly>
 
 <h3>Select a Time</h3>
 <div id="times" class="times"></div>
@@ -118,11 +109,9 @@ background:#354edb;
 <input id="bookingEmail" placeholder="Email (optional)">
 <button id="book">Confirm Booking</button>
 <p id="msg"></p>
-
 </div>
 
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
 import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
@@ -142,40 +131,12 @@ const bookingsRef = collection(db, "bookings");
 let selectedDate=null;
 let selectedTime=null;
 
-const calendar=document.getElementById("calendar");
 const times=document.getElementById("times");
-
-/* --- CREATE WEEKEND CALENDAR --- */
-
-const today=new Date();
-
-for(let i=0;i<30;i++){
-let d=new Date();
-d.setDate(today.getDate()+i);
-
-let day=d.getDay();
-
-if(day===6 || day===0){ // Saturday or Sunday only
-const div=document.createElement("div");
-div.className="day";
-div.innerText=d.toDateString().slice(0,10);
-
-div.onclick=()=>{
-document.querySelectorAll(".day").forEach(el=>el.classList.remove("selected"));
-div.classList.add("selected");
-selectedDate=d.toDateString();
-loadTimes();
-};
-
-calendar.appendChild(div);
-}
-}
-
-/* --- TIMES --- */
+const msg=document.getElementById("msg");
 
 function loadTimes(){
 times.innerHTML="";
-const slots=["10:00am","10:30am","11:00am","11:30am","12:00pm","12:30pm","1:00pm","1:30pm","2:00pm","2:30pm"];
+const slots=["10:00","10:30","11:00","11:30","12:00","12:30","13:00","13:30","14:00","14:30"];
 
 slots.forEach(t=>{
 const div=document.createElement("div");
@@ -192,33 +153,43 @@ times.appendChild(div);
 });
 }
 
-/* --- BOOKING SUBMIT --- */
+flatpickr("#datePicker", {
+    minDate: "today",
+    dateFormat: "Y-m-d",
+    disable: [
+        function(date) {
+            return (date.getDay() !== 0 && date.getDay() !== 6);
+        }
+    ],
+    onChange: function(selectedDates, dateStr) {
+        selectedDate = dateStr;
+        loadTimes();
+    }
+});
 
-document.getElementById("booking-form").addEventListener("submit", async(e)=>{
-e.preventDefault();
+document.getElementById("book").onclick=async()=>{
+const name=document.getElementById("bookingName").value.trim();
+const phone=document.getElementById("bookingPhone").value.trim();
+const email=document.getElementById("bookingEmail").value.trim();
 
-if(!selectedDate || !selectedTime){
-alert("Please select a date and time");
+if(!selectedDate||!selectedTime||!name){
+msg.textContent="Please fill all required fields";
 return;
 }
-
-const name=document.getElementById("customerName").value;
-const phone=document.getElementById("customerPhone").value;
 
 await addDoc(bookingsRef,{
 name,
 phone,
+email,
 date:selectedDate,
 time:selectedTime,
 created:new Date()
 });
 
-alert("Booking Confirmed! I will contact you shortly.");
-
-e.target.reset();
-});
-
+msg.textContent="Booking Confirmed!";
+};
 </script>
 
 </body>
 </html>
+
