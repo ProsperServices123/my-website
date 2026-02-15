@@ -42,7 +42,6 @@ const serviceOptions = {
 };
 
 serviceSelect.onchange = () => {
-
   const selected = serviceSelect.value;
   subServiceSelect.innerHTML = "";
 
@@ -78,7 +77,7 @@ flatpickr("#datePicker", {
 
     let allowedSlots = [];
 
-    // WEEKENDS → full day
+    // WEEKENDS → full day (9am–5pm)
     if (day === 0 || day === 6) {
       for (let h = 9; h < 17; h++) {
         allowedSlots.push(`${String(h).padStart(2,"0")}:00`);
@@ -86,18 +85,17 @@ flatpickr("#datePicker", {
       }
     }
 
-    // MONDAY, WEDNESDAY, THURSDAY → 4pm–5pm only
+    // MONDAY, WEDNESDAY, THURSDAY → 4pm–5pm
     else if (day === 1 || day === 3 || day === 4) {
       allowedSlots = ["16:00","16:30"];
     }
 
-    // OTHER DAYS → no booking
+    // TUESDAY & FRIDAY → closed
     else {
       slotsDiv.innerHTML = "No availability on this day.";
       return;
     }
 
-    // check booked times in Firebase
     const q = query(bookingsRef, where("date", "==", dateStr));
     const snapshot = await getDocs(q);
 
@@ -107,7 +105,6 @@ flatpickr("#datePicker", {
     slotsDiv.innerHTML = "";
 
     allowedSlots.forEach(time => {
-
       if (booked.includes(time)) return;
 
       const div = document.createElement("div");
