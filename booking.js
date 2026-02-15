@@ -25,7 +25,52 @@ const slotsDiv = document.getElementById("slots");
 const dateInput = document.getElementById("date");
 let selectedTime = null;
 
-// generate 30min time slots
+/* -------- SERVICE DROPDOWN -------- */
+
+const serviceSelect = document.getElementById("service");
+const subServiceSelect = document.getElementById("subService");
+const subContainer = document.getElementById("subServiceContainer");
+
+const services = {
+  "Pressure Cleaning": [
+    "Driveway",
+    "Car",
+    "Bin",
+    "Boat"
+  ],
+  "Gardening": [
+    "Lawn Mowing and edging",
+    "Pruning bushes and trees",
+    "Leaf removal and yard cleanup"
+  ],
+  "Gutter Cleaning": [
+    "Single story house",
+    "Double story house"
+  ]
+};
+
+serviceSelect.onchange = () => {
+  const selected = serviceSelect.value;
+
+  if (!selected) {
+    subContainer.style.display = "none";
+    return;
+  }
+
+  subServiceSelect.innerHTML = "";
+
+  services[selected].forEach(option => {
+    const opt = document.createElement("option");
+    opt.value = option;
+    opt.textContent = option;
+    subServiceSelect.appendChild(opt);
+  });
+
+  subContainer.style.display = "block";
+};
+
+/* -------- TIME SLOTS -------- */
+
 function generateSlots() {
   const slots = [];
   for (let h = 9; h < 17; h++) {
@@ -63,13 +108,16 @@ dateInput.onchange = async () => {
   });
 };
 
+/* -------- BOOKING -------- */
+
 document.getElementById("book").onclick = async () => {
   const name = document.getElementById("name").value;
   const phone = document.getElementById("phone").value;
-  const email = document.getElementById("email").value;
+  const service = serviceSelect.value;
+  const subService = subServiceSelect.value;
   const date = dateInput.value;
 
-  if (!name || !selectedTime || !date) {
+  if (!name || !phone || !service || !subService || !selectedTime || !date) {
     alert("Please complete all fields");
     return;
   }
@@ -77,11 +125,14 @@ document.getElementById("book").onclick = async () => {
   await addDoc(bookingsRef, {
     name,
     phone,
-    email,
+    service,
+    subService,
     date,
-    time: selectedTime
+    time: selectedTime,
+    created: new Date()
   });
 
-  alert("Booking Confirmed!");
-  dateInput.onchange();
+  alert("Booking Confirmed! We will contact you shortly.");
+
+  location.reload();
 };
