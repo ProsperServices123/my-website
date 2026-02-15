@@ -104,12 +104,22 @@ text-align:center;
 <h3>Select a Time</h3>
 <div id="times" class="times"></div>
 
-<input id="bookingName" placeholder="Full Name">
-<input id="bookingPhone" placeholder="Phone">
-<input id="bookingEmail" placeholder="Email (optional)">
+<input id="bookingName" placeholder="Full Name" required>
+<input id="bookingPhone" placeholder="Phone Number" required>
+
+<label style="display:block;margin-top:15px;font-weight:600;">
+Select Service
+</label>
+
+<select id="service" style="width:100%;padding:12px;border-radius:10px;margin-top:8px;border:1px solid #ccc;">
+  <option value="">Choose a service...</option>
+  <option value="Gardening">Gardening</option>
+  <option value="Pressure Cleaning">Pressure Cleaning</option>
+  <option value="Gutter Cleaning">Gutter Cleaning</option>
+</select>
+
 <button id="book">Confirm Booking</button>
 <p id="msg"></p>
-</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
