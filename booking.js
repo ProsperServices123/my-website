@@ -1,155 +1,106 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  getDocs,
-  query,
-  where
-} from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* ---------------- FIREBASE ---------------- */
-
+/* ----------------- YOUR FIREBASE CONFIG ----------------- */
+/* KEEP YOUR OWN CONFIG — DO NOT CHANGE VALUES */
 const firebaseConfig = {
-  apiKey: "AIzaSyBv8Iap6L0Zz8U_0k3tQ-Bkb6KI9vGDbtI",
-  authDomain: "prosper-e5c0d.firebaseapp.com",
-  projectId: "prosper-e5c0d",
-  storageBucket: "prosper-e5c0d.appspot.com",
-  messagingSenderId: "745275197601",
-  appId: "1:745275197601:web:e2f1f1e86013a382f048e0"
+apiKey: "PASTE_YOURS",
+authDomain: "PASTE_YOURS",
+projectId: "PASTE_YOURS",
+storageBucket: "PASTE_YOURS",
+messagingSenderId: "PASTE_YOURS",
+appId: "PASTE_YOURS"
 };
+/* -------------------------------------------------------- */
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const bookingsRef = collection(db, "bookings");
 
-/* ---------------- ELEMENTS ---------------- */
-
-const slotsDiv = document.getElementById("times");
-const serviceSelect = document.getElementById("service");
-const subServiceSelect = document.getElementById("subService");
-const subContainer = document.getElementById("subServiceContainer");
-
-let selectedTime = null;
+const timesDiv = document.getElementById("times");
 let selectedDate = null;
+let selectedTime = null;
 
-/* ---------------- SERVICES ---------------- */
+/* ALL AVAILABLE TIMES */
+const allTimes = [
+"8:00 AM","9:00 AM","10:00 AM",
+"11:00 AM","12:00 PM","1:00 PM",
+"2:00 PM","3:00 PM","4:00 PM"
+];
 
-const serviceOptions = {
-  "Pressure Cleaning": ["Driveway","Car","Bin","Boat"],
-  "Gardening": ["Lawn Mowing & Edging","Pruning Trees/Bushes","Leaf Cleanup"],
-  "Gutter Cleaning": ["Single Storey House","Double Storey House"]
-};
+/* ---------- LOAD TIMES FOR SELECTED DATE ---------- */
+async function loadTimes(dateStr){
 
-serviceSelect.onchange = () => {
-  const selected = serviceSelect.value;
-  subServiceSelect.innerHTML = "";
+timesDiv.innerHTML = "Loading times...";
 
-  if (!serviceOptions[selected]) {
-    subContainer.style.display = "none";
-    return;
-  }
+const bookingsRef = collection(db, "bookings");
+const q = query(bookingsRef, where("date","==",dateStr));
+const snapshot = await getDocs(q);
 
-  subContainer.style.display = "block";
-
-  serviceOptions[selected].forEach(option => {
-    const opt = document.createElement("option");
-    opt.value = option;
-    opt.textContent = option;
-    subServiceSelect.appendChild(opt);
-  });
-};
-
-/* ---------------- CALENDAR ---------------- */
-
-flatpickr("#datePicker", {
-  minDate: "today",
-  dateFormat: "Y-m-d",
-
-  onChange: async function(selectedDates, dateStr) {
-
-    selectedDate = dateStr;
-    selectedTime = null;
-    slotsDiv.innerHTML = "Loading times...";
-
-    const chosenDate = new Date(dateStr);
-    const day = chosenDate.getDay();
-
-    let allowedSlots = [];
-
-    // WEEKENDS → full day (9am–5pm)
-    if (day === 0 || day === 6) {
-      for (let h = 9; h < 17; h++) {
-        allowedSlots.push(`${String(h).padStart(2,"0")}:00`);
-        allowedSlots.push(`${String(h).padStart(2,"0")}:30`);
-      }
-    }
-
-    // MONDAY, WEDNESDAY, THURSDAY → 4pm–5pm
-    else if (day === 1 || day === 3 || day === 4) {
-      allowedSlots = ["16:00","16:30"];
-    }
-
-    // TUESDAY & FRIDAY → closed
-    else {
-      slotsDiv.innerHTML = "No availability on this day.";
-      return;
-    }
-
-    const q = query(bookingsRef, where("date", "==", dateStr));
-    const snapshot = await getDocs(q);
-
-    const booked = [];
-    snapshot.forEach(doc => booked.push(doc.data().time));
-
-    slotsDiv.innerHTML = "";
-
-    allowedSlots.forEach(time => {
-      if (booked.includes(time)) return;
-
-      const div = document.createElement("div");
-      div.className = "time";
-      div.textContent = time;
-
-      div.onclick = () => {
-        document.querySelectorAll(".time").forEach(s => s.classList.remove("selected"));
-        div.classList.add("selected");
-        selectedTime = time;
-      };
-
-      slotsDiv.appendChild(div);
-    });
-
-    if (slotsDiv.innerHTML === "") {
-      slotsDiv.innerHTML = "All times are booked.";
-    }
-  }
+let bookedTimes = [];
+snapshot.forEach(doc=>{
+bookedTimes.push(doc.data().time);
 });
 
-/* ---------------- BOOK BUTTON ---------------- */
+timesDiv.innerHTML = "";
+selectedTime = null;
 
-document.getElementById("book").onclick = async () => {
+allTimes.forEach(time=>{
+if(!bookedTimes.includes(time)){
+const div = document.createElement("div");
+div.className = "time";
+div.textContent = time;
 
-  const name = document.getElementById("bookingName").value.trim();
-  const phone = document.getElementById("bookingPhone").value.trim();
-  const service = serviceSelect.value;
-  const subService = subServiceSelect.value;
+```
+  div.onclick = ()=>{
+    document.querySelectorAll(".time").forEach(t=>t.classList.remove("selected"));
+    div.classList.add("selected");
+    selectedTime = time;
+  };
 
-  if (!name || !phone || !selectedDate || !selectedTime || !service) {
-    alert("Please complete all fields");
-    return;
-  }
+  timesDiv.appendChild(div);
+}
+```
 
-  await addDoc(bookingsRef, {
-    name,
-    phone,
-    service,
-    subService,
-    date: selectedDate,
-    time: selectedTime,
-    created: new Date()
-  });
+});
 
-  alert("Booking Confirmed! I will contact you shortly.");
-  location.reload();
+if(timesDiv.innerHTML === ""){
+timesDiv.innerHTML = "<b>No available times for this day</b>";
+}
+}
+
+/* ---------- CALENDAR ---------- */
+flatpickr("#datePicker",{
+minDate:"today",
+dateFormat:"Y-m-d",
+
+onChange:function(selectedDates,dateStr){
+selectedDate = dateStr;
+loadTimes(dateStr);
+}
+});
+
+/* ---------- BOOKING BUTTON ---------- */
+document.getElementById("book").onclick = async ()=>{
+
+const name = document.getElementById("bookingName").value;
+const phone = document.getElementById("bookingPhone").value;
+const service = document.getElementById("service").value;
+
+if(!selectedDate || !selectedTime || !name || !phone || !service){
+alert("Please fill out all fields and choose a time");
+return;
+}
+
+await addDoc(collection(db,"bookings"),{
+name:name,
+phone:phone,
+service:service,
+date:selectedDate,
+time:selectedTime,
+created:Date.now()
+});
+
+alert("Booking Confirmed!");
+
+location.reload();
 };
