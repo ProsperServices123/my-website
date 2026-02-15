@@ -21,103 +21,98 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const bookingsRef = collection(db, "bookings");
 
-const slotsDiv = document.getElementById("slots");
-const dateInput = document.getElementById("date");
-let selectedTime = null;
+const slotsDiv = document.getElementById("times");
+const dateInput = document.getElementById("datePicker");
 
-/* -------- SERVICE DROPDOWN -------- */
+let selectedTime = null;
+let selectedDate = null;
+
+/* ----------------- SERVICE DROPDOWNS ----------------- */
 
 const serviceSelect = document.getElementById("service");
 const subServiceSelect = document.getElementById("subService");
 const subContainer = document.getElementById("subServiceContainer");
+const subLabel = document.getElementById("subLabel");
 
-const services = {
-  "Pressure Cleaning": [
-    "Driveway",
-    "Car",
-    "Bin",
-    "Boat"
-  ],
-  "Gardening": [
-    "Lawn Mowing and edging",
-    "Pruning bushes and trees",
-    "Leaf removal and yard cleanup"
-  ],
-  "Gutter Cleaning": [
-    "Single story house",
-    "Double story house"
-  ]
+const serviceOptions = {
+  "Pressure Cleaning": ["Driveway","Car","Bin","Boat"],
+  "Gardening": ["Lawn Mowing & Edging","Pruning Trees/Bushes","Leaf Cleanup"],
+  "Gutter Cleaning": ["Single Storey House","Double Storey House"]
 };
 
 serviceSelect.onchange = () => {
   const selected = serviceSelect.value;
 
-  if (!selected) {
+  subServiceSelect.innerHTML = "";
+
+  if (!serviceOptions[selected]) {
     subContainer.style.display = "none";
     return;
   }
 
-  subServiceSelect.innerHTML = "";
+  subContainer.style.display = "block";
 
-  services[selected].forEach(option => {
+  serviceOptions[selected].forEach(option => {
     const opt = document.createElement("option");
     opt.value = option;
     opt.textContent = option;
     subServiceSelect.appendChild(opt);
   });
-
-  subContainer.style.display = "block";
 };
 
-/* -------- TIME SLOTS -------- */
+/* ----------------- CALENDAR ----------------- */
 
-function generateSlots() {
-  const slots = [];
-  for (let h = 9; h < 17; h++) {
-    slots.push(`${h.toString().padStart(2,"0")}:00`);
-    slots.push(`${h.toString().padStart(2,"0")}:30`);
+flatpickr("#datePicker", {
+  minDate: "today",
+  dateFormat: "Y-m-d",
+  disable: [
+    function(date) {
+      return (date.getDay() !== 0 && date.getDay() !== 6);
+    }
+  ],
+  onChange: async function(selectedDates, dateStr) {
+
+    selectedDate = dateStr;
+    slotsDiv.innerHTML = "";
+    selectedTime = null;
+
+    const q = query(bookingsRef, where("date", "==", dateStr));
+    const snapshot = await getDocs(q);
+
+    const booked = [];
+    snapshot.forEach(doc => booked.push(doc.data().time));
+
+    for (let h = 9; h < 17; h++) {
+      ["00","30"].forEach(m => {
+        const time = `${h.toString().padStart(2,"0")}:${m}`;
+        if (booked.includes(time)) return;
+
+        const div = document.createElement("div");
+        div.className = "time";
+        div.textContent = time;
+
+        div.onclick = () => {
+          document.querySelectorAll(".time").forEach(s => s.classList.remove("selected"));
+          div.classList.add("selected");
+          selectedTime = time;
+        };
+
+        slotsDiv.appendChild(div);
+      });
+    }
   }
-  return slots;
-}
+});
 
-dateInput.onchange = async () => {
-  const date = dateInput.value;
-  slotsDiv.innerHTML = "";
-  selectedTime = null;
-
-  const q = query(bookingsRef, where("date", "==", date));
-  const snapshot = await getDocs(q);
-
-  const booked = [];
-  snapshot.forEach(doc => booked.push(doc.data().time));
-
-  generateSlots().forEach(time => {
-    if (booked.includes(time)) return;
-
-    const div = document.createElement("div");
-    div.className = "slot";
-    div.textContent = time;
-
-    div.onclick = () => {
-      document.querySelectorAll(".slot").forEach(s => s.classList.remove("selected"));
-      div.classList.add("selected");
-      selectedTime = time;
-    };
-
-    slotsDiv.appendChild(div);
-  });
-};
-
-/* -------- BOOKING -------- */
+/* ----------------- BOOK BUTTON ----------------- */
 
 document.getElementById("book").onclick = async () => {
-  const name = document.getElementById("name").value;
-  const phone = document.getElementById("phone").value;
+
+  const name = document.getElementById("bookingName").value;
+  const phone = document.getElementById("bookingPhone").value;
   const service = serviceSelect.value;
   const subService = subServiceSelect.value;
-  const date = dateInput.value;
 
-  if (!name || !phone || !service || !subService || !selectedTime || !date) {
+  if (!name || !phone || !selectedDate || !selectedTime || !service) {
     alert("Please complete all fields");
     return;
   }
@@ -127,12 +122,12 @@ document.getElementById("book").onclick = async () => {
     phone,
     service,
     subService,
-    date,
+    date: selectedDate,
     time: selectedTime,
     created: new Date()
   });
 
-  alert("Booking Confirmed! We will contact you shortly.");
+  alert("Booking Confirmed! I will contact you shortly.");
 
   location.reload();
 };
