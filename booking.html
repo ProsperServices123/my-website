@@ -106,6 +106,20 @@ text-align:center;
 
 <input id="bookingName" placeholder="Full Name" required>
 <input id="bookingPhone" placeholder="Phone Number" required>
+ 
+  <label>Select Service</label>
+<select id="service">
+  <option value="">Choose a service</option>
+  <option value="Pressure Cleaning">Pressure Cleaning</option>
+  <option value="Gardening">Gardening</option>
+  <option value="Gutter Cleaning">Gutter Cleaning</option>
+</select>
+
+<div id="subServiceContainer" style="display:none;">
+  <label id="subLabel">What do you want done?</label>
+  <select id="subService"></select>
+</div>
+
 
 <label style="display:block;margin-top:15px;font-weight:600;">
 Select Service
