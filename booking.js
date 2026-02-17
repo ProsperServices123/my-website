@@ -30,8 +30,10 @@ const serviceSelect = document.getElementById("service");
 const subServiceSelect = document.getElementById("subService");
 const subContainer = document.getElementById("subServiceContainer");
 
-let selectedTime = null;
 let selectedDate = null;
+let startTime = null;
+let endTime = null;
+
 
 /* ---------------- SERVICES ---------------- */
 
