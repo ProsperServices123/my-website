@@ -71,32 +71,70 @@ allowed=["16:00","16:30"];
 }
 return allowed;
 }
+/* --------- MONTH CACHE (IMPORTANT) --------- */
+
+let monthBookings = {};
+
+async function loadMonthBookings(year, month){
+
+monthBookings = {};
+
+const start = `${year}-${String(month+1).padStart(2,'0')}-01`;
+const end   = `${year}-${String(month+1).padStart(2,'0')}-31`;
+
+const q = query(
+bookingsRef,
+where("date", ">=", start),
+where("date", "<=", end)
+);
+
+const snap = await getDocs(q);
+
+snap.forEach(doc=>{
+const b = doc.data();
+if(!monthBookings[b.date]) monthBookings[b.date] = [];
+monthBookings[b.date].push(b);
+});
+}
 
 /* ---------------- CALENDAR ---------------- */
 flatpickr("#datePicker",{
 minDate:"today",
 dateFormat:"Y-m-d",
 
-onDayCreate: async function(dObj, dStr, fp, dayElem){
+/* LOAD BOOKINGS WHEN MONTH CHANGES */
+onMonthChange: async function(selectedDates, dateStr, fp){
+const d = fp.currentYear;
+const m = fp.currentMonth;
+await loadMonthBookings(d,m);
+fp.redraw();
+},
+
+onReady: async function(selectedDates, dateStr, fp){
+const d = fp.currentYear;
+const m = fp.currentMonth;
+await loadMonthBookings(d,m);
+fp.redraw();
+},
+
+/* COLOUR DAYS */
+onDayCreate: function(dObj, dStr, fp, dayElem){
 
 ```
-const date = dayElem.dateObj;
-const dateStr = fp.formatDate(date,"Y-m-d");
+const dateStr = fp.formatDate(dayElem.dateObj,"Y-m-d");
+const day = dayElem.dateObj.getDay();
 
-const allowedSlots = generateSlots(date.getDay());
+let allowedSlots = generateSlots(day);
 
 if(allowedSlots.length===0){
   dayElem.classList.add("available-none");
   return;
 }
 
-const q=query(bookingsRef,where("date","==",dateStr));
-const snap=await getDocs(q);
+const bookings = monthBookings[dateStr] || [];
 
-let bookedMinutes=0;
-
-snap.forEach(doc=>{
-  const b=doc.data();
+let bookedMinutes = 0;
+bookings.forEach(b=>{
   if(!b.start || !b.end) return;
   bookedMinutes += (toMinutes(b.end)-toMinutes(b.start));
 });
@@ -105,15 +143,103 @@ const totalMinutes = allowedSlots.length * 30;
 const freeMinutes = totalMinutes - bookedMinutes;
 
 if(freeMinutes<=0){
-  dayElem.classList.add("available-none"); // RED
+  dayElem.classList.add("available-none");
 }
 else if(freeMinutes<=180){
-  dayElem.classList.add("available-some"); // YELLOW (≈2-3hrs left)
+  dayElem.classList.add("available-some");
 }
 else{
-  dayElem.classList.add("available-full"); // GREEN
+  dayElem.classList.add("available-full");
 }
 ```
+
+},
+
+/* CLICKING A DATE (TIMES SHOW AGAIN) */
+onChange: async function(selectedDates,dateStr){
+
+```
+selectedDate=dateStr;
+startTime=null;
+endTime=null;
+slotsDiv.innerHTML="Loading times...";
+
+const chosenDate=new Date(dateStr);
+const allowedSlots=generateSlots(chosenDate.getDay());
+
+if(allowedSlots.length===0){
+  slotsDiv.innerHTML="No availability on this day.";
+  return;
+}
+
+const bookings = monthBookings[dateStr] || [];
+
+let booked=[];
+
+bookings.forEach(b=>{
+  if(!b.start || !b.end) return;
+
+  allowedSlots.forEach(slot=>{
+    if(toMinutes(slot)>=toMinutes(b.start) && toMinutes(slot)<toMinutes(b.end)){
+      booked.push(slot);
+    }
+  });
+});
+
+slotsDiv.innerHTML="";
+
+allowedSlots.forEach(time=>{
+
+  if(booked.includes(time)) return;
+
+  const div=document.createElement("div");
+  div.className="time";
+  div.textContent=time;
+  div.dataset.time=time;
+
+  div.onclick=()=>{
+
+    if(!startTime){
+      startTime=time;
+      div.classList.add("selected");
+      return;
+    }
+
+    if(!endTime){
+      if(toMinutes(time)<=toMinutes(startTime)){
+        startTime=time;
+        document.querySelectorAll(".time").forEach(s=>s.classList.remove("selected"));
+        div.classList.add("selected");
+        return;
+      }
+
+      endTime=time;
+
+      document.querySelectorAll(".time").forEach(slot=>{
+        const t=slot.dataset.time;
+        if(toMinutes(t)>=toMinutes(startTime) && toMinutes(t)<=toMinutes(endTime)){
+          slot.classList.add("selected");
+        }
+      });
+      return;
+    }
+
+    startTime=time;
+    endTime=null;
+    document.querySelectorAll(".time").forEach(s=>s.classList.remove("selected"));
+    div.classList.add("selected");
+  };
+
+  slotsDiv.appendChild(div);
+});
+
+if(slotsDiv.innerHTML===""){
+  slotsDiv.innerHTML="All times are booked.";
+}
+```
+
+}
+});
 
 },
 
