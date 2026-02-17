@@ -27,7 +27,7 @@ let endTime = null;
 
 /* ---------------- SERVICES ---------------- */
 const serviceOptions = {
-  "Pressure Cleaning": ["Driveway","Car","Bin","Boat"],
+  "Pressure Cleaning": ["Driveway/ Paths","Car","Bins","Boat"],
   "Gardening": ["Lawn Mowing & Edging","Pruning Trees/Bushes","Leaf Cleanup"],
   "Gutter Cleaning": ["Single Storey House","Double Storey House"]
 };
