@@ -74,15 +74,12 @@ const m=min%60;
 return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`;
 }
 
-/* ---------------- CALENDAR ---------------- */
+/* ---------------- LOAD TIMES FUNCTION ---------------- */
 
-flatpickr("#datePicker", {
-minDate: "today",
-dateFormat: "Y-m-d",
+async function loadTimes(dateStr){
 
-onChange: async function(selectedDates, dateStr) {
+try{
 
-```
 selectedDate = dateStr;
 startTime = null;
 endTime = null;
@@ -93,109 +90,131 @@ const day = chosenDate.getDay();
 
 let allowedSlots = [];
 
-// WEEKENDS → 9am–5pm
+/* WEEKENDS full day */
 if (day === 0 || day === 6) {
-  for (let h = 9; h < 17; h++) {
-    allowedSlots.push(`${String(h).padStart(2,"0")}:00`);
-    allowedSlots.push(`${String(h).padStart(2,"0")}:30`);
-  }
+for (let h = 9; h < 17; h++) {
+allowedSlots.push(`${String(h).padStart(2,"0")}:00`);
+allowedSlots.push(`${String(h).padStart(2,"0")}:30`);
+}
 }
 
-// MON WED THU → 4pm–5pm
+/* MON WED THU */
 else if (day === 1 || day === 3 || day === 4) {
-  allowedSlots = ["16:00","16:30"];
+allowedSlots = ["16:00","16:30"];
 }
 
-else {
-  slotsDiv.innerHTML = "No availability on this day.";
-  return;
+/* CLOSED DAYS */
+else{
+slotsDiv.innerHTML = "No availability on this day.";
+return;
 }
 
-// get bookings
-const q = query(bookingsRef, where("date", "==", dateStr));
-const snapshot = await getDocs(q);
+/* GET BOOKINGS SAFELY */
+const snapshot = await getDocs(query(bookingsRef, where("date","==",dateStr)));
 
 let bookedMinutes = [];
 
 snapshot.forEach(doc=>{
-  const b = doc.data();
+const b = doc.data();
 
-  if(!b.start || !b.end) return;
+/* SUPPORT OLD BOOKINGS (time field) */
+if(b.time){
+bookedMinutes.push(b.time);
+return;
+}
 
-  let current = timeToMinutes(b.start);
+/* NEW RANGE BOOKINGS */
+if(!b.start || !b.end) return;
 
-  while(current < timeToMinutes(b.end)){
-    bookedMinutes.push(minutesToTime(current));
-    current += 30;
-  }
+let current=timeToMinutes(b.start);
+const end=timeToMinutes(b.end);
+
+while(current < end){
+bookedMinutes.push(minutesToTime(current));
+current+=30;
+}
 });
 
-slotsDiv.innerHTML = "";
+/* BUILD BUTTONS */
+slotsDiv.innerHTML="";
 
-allowedSlots.forEach(time => {
+allowedSlots.forEach(time=>{
 
-  if(bookedMinutes.includes(time)) return;
+if(bookedMinutes.includes(time)) return;
 
-  const div = document.createElement("div");
-  div.className = "time";
-  div.textContent = time;
-  div.dataset.time = time;
+const div=document.createElement("div");
+div.className="time";
+div.textContent=time;
+div.dataset.time=time;
 
-  div.onclick = () => {
+div.onclick=()=>{
 
-    // FIRST CLICK
-    if(!startTime){
-      startTime = time;
-      div.classList.add("selected");
-      return;
-    }
+/* FIRST CLICK */
+if(!startTime){
+startTime=time;
+div.classList.add("selected");
+return;
+}
 
-    // SECOND CLICK
-    if(!endTime){
-      if(timeToMinutes(time) <= timeToMinutes(startTime)){
-        startTime = time;
-        document.querySelectorAll(".time").forEach(s=>s.classList.remove("selected"));
-        div.classList.add("selected");
-        return;
-      }
+/* SECOND CLICK */
+if(!endTime){
 
-      endTime = time;
+if(timeToMinutes(time)<=timeToMinutes(startTime)){
+startTime=time;
+document.querySelectorAll(".time").forEach(s=>s.classList.remove("selected"));
+div.classList.add("selected");
+return;
+}
 
-      const allSlots=document.querySelectorAll(".time");
-      let selecting=false;
+endTime=time;
 
-      allSlots.forEach(slot=>{
-        const t=slot.dataset.time;
+document.querySelectorAll(".time").forEach(slot=>{
+const t=slot.dataset.time;
+if(timeToMinutes(t)>=timeToMinutes(startTime) &&
+timeToMinutes(t)<=timeToMinutes(endTime)){
+slot.classList.add("selected");
+}
+});
 
-        if(t===startTime) selecting=true;
-        if(selecting) slot.classList.add("selected");
-        if(t===endTime) selecting=false;
-      });
+return;
+}
 
-      return;
-    }
+/* THIRD CLICK RESET */
+startTime=time;
+endTime=null;
+document.querySelectorAll(".time").forEach(s=>s.classList.remove("selected"));
+div.classList.add("selected");
 
-    // THIRD CLICK (reset)
-    startTime=time;
-    endTime=null;
-    document.querySelectorAll(".time").forEach(s=>s.classList.remove("selected"));
-    div.classList.add("selected");
-  };
+};
 
-  slotsDiv.appendChild(div);
+slotsDiv.appendChild(div);
+
 });
 
 if(slotsDiv.innerHTML===""){
-  slotsDiv.innerHTML="All times are booked.";
+slotsDiv.innerHTML="All times are booked.";
 }
-```
 
+}catch(err){
+console.error(err);
+slotsDiv.innerHTML="Error loading times (check Firestore rules)";
+}
+
+}
+
+/* ---------------- CALENDAR ---------------- */
+
+flatpickr("#datePicker", {
+minDate:"today",
+dateFormat:"Y-m-d",
+onChange:function(selectedDates,dateStr){
+loadTimes(dateStr);
 }
 });
 
 /* ---------------- BOOK BUTTON ---------------- */
 
-document.getElementById("book").onclick = async () => {
+document.getElementById("book").onclick=async()=>{
 
 const name=document.getElementById("bookingName").value.trim();
 const phone=document.getElementById("bookingPhone").value.trim();
