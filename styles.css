@@ -830,5 +830,21 @@ body {
   font-weight: bold;
   line-height: 1.8;
 }
+/* calendar availability colours */
+
+.available-full{
+border:3px solid #2ecc71 !important;
+border-radius:50%;
+}
+
+.available-some{
+border:3px solid #f1c40f !important;
+border-radius:50%;
+}
+
+.available-none{
+border:3px solid #e74c3c !important;
+border-radius:50%;
+}
 
 }
