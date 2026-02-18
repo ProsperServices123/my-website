@@ -832,17 +832,17 @@ body {
 }
 /* calendar availability colours */
 
-.available-full{
+.flatpickr-day.available-full{
 border:3px solid #2ecc71 !important;
 border-radius:50%;
 }
 
-.available-some{
+.flatpickr-day.available-some{
 border:3px solid #f1c40f !important;
 border-radius:50%;
 }
 
-.available-none{
+.flatpickr-day.available-none{
 border:3px solid #e74c3c !important;
 border-radius:50%;
 }
