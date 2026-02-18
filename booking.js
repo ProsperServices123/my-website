@@ -96,6 +96,43 @@ if(!monthBookings[b.date]) monthBookings[b.date] = [];
 monthBookings[b.date].push(b);
 });
 }
+/* ---------- TIME ENGINE (REQUIRED) ---------- */
+
+function toMinutes(t){
+const [h,m] = t.split(":");
+return parseInt(h)*60 + parseInt(m);
+}
+
+function toTime(min){
+const h = Math.floor(min/60);
+const m = min%60;
+return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+}
+
+function generateSlots(day){
+
+let slots=[];
+
+// WEEKENDS 9am-5pm
+if(day===0 || day===6){
+for(let h=9;h<17;h++){
+slots.push(`${String(h).padStart(2,'0')}:00`);
+slots.push(`${String(h).padStart(2,'0')}:30`);
+}
+}
+
+// MON WED THU 4-5pm
+else if(day===1 || day===3 || day===4){
+slots=["16:00","16:30"];
+}
+
+// TUE FRI CLOSED
+else{
+return [];
+}
+
+return slots;
+}
 
 /* ---------------- CALENDAR ---------------- */
 flatpickr("#datePicker",{
