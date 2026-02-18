@@ -832,19 +832,39 @@ body {
 }
 /* calendar availability colours */
 
-.flatpickr-day.available-full{
-border:3px solid #2ecc71 !important;
+/* ===== CALENDAR AVAILABILITY COLOURS ===== */
+
+/* base circle */
+.flatpickr-day.available-full::before,
+.flatpickr-day.available-some::before,
+.flatpickr-day.available-none::before{
+content:"";
+position:absolute;
+width:28px;
+height:28px;
 border-radius:50%;
+left:50%;
+top:50%;
+transform:translate(-50%,-50%);
+z-index:-1;
 }
 
-.flatpickr-day.available-some{
-border:3px solid #f1c40f !important;
-border-radius:50%;
+/* FULL availability — GREEN */
+.flatpickr-day.available-full::before{
+background:#2ecc71;
 }
 
-.flatpickr-day.available-none{
-border:3px solid #e74c3c !important;
-border-radius:50%;
+/* SOME availability — YELLOW */
+.flatpickr-day.available-some::before{
+background:#f1c40f;
 }
 
+/* NO availability — RED */
+.flatpickr-day.available-none::before{
+background:#e74c3c;
+}
+
+/* keep selected date blue */
+.flatpickr-day.selected::before{
+background:#2563eb !important;
 }
