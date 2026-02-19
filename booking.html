@@ -1,385 +1,530 @@
-
-+266
--119
-Lines changed: 266 additions & 119 deletions
-Original file line number	Diff line number	Diff line change
-@@ -1,136 +1,283 @@
-<think>
-The user is confused about where to put the code. Let me simplify this and just give them the complete HTML file so they can copy-paste the whole thing and replace their existing file.
-I'll provide the full HTML file with everything included - the CSS in the head, and the JavaScript in the script tag.
-</think>. It has everything included.
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Book a Service - Prosper's Services</title>
+
+<!-- Font -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-<!-- Flatpickr Calendar -->
+
+<!-- Flatpickr -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<style>
-<style>
-/* ===== PAGE BACKGROUND ===== */
+
 <style>
 body{
-font-family:Poppins, sans-serif;
-background:#f5f7fb;
-margin:0;
-padding:0;
+  font-family:Poppins, sans-serif;
+  background:#f5f7fb;
+  margin:0;
 }
+
 .booking-container{
-max-width:900px;
-margin:50px auto;
-background:white;
-padding:30px;
-border-radius:12px;
-box-shadow:0 10px 30px rgba(0,0,0,0.1);
+  max-width:900px;
+  margin:50px auto;
+  background:white;
+  padding:30px;
+  border-radius:12px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.1);
 }
+
 h1{
-text-align:center;
-margin-bottom:25px;
+  text-align:center;
 }
-.times{
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:12px;
-margin-bottom:25px;
+
+label{
+  font-weight:600;
+  display:block;
+  margin-top:15px;
 }
-.time{
-padding:14px;
-border:2px solid #4f6cff;
-border-radius:10px;
-text-align:center;
-cursor:pointer;
-transition:0.2s;
-}
-.time:hover{
-background:#4f6cff;
-color:white;
-}
-.time.selected{
-background:#4f6cff;
-color:white;
-}
+
 input, select{
-width:100%;
-padding:14px;
-margin-top:12px;
-border-radius:10px;
-border:1px solid #ccc;
-font-size:16px;
+  width:100%;
+  padding:14px;
+  margin-top:8px;
+  border-radius:10px;
+  border:1px solid #ccc;
+  font-size:16px;
 }
+
+.times{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+  margin-top:15px;
+}
+
+.time{
+  padding:14px;
+  border:2px solid #4f6cff;
+  border-radius:10px;
+  text-align:center;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.time:hover{
+  background:#4f6cff;
+  color:white;
+}
+
+.time.selected{
+  background:#4f6cff;
+  color:white;
+}
+
 button{
-background:#4f6cff;
-color:white;
-border:none;
-cursor:pointer;
-padding:14px;
-margin-top:18px;
-border-radius:10px;
-font-size:16px;
-width:100%;
+  background:#4f6cff;
+  color:white;
+  border:none;
+  cursor:pointer;
+  padding:14px;
+  margin-top:20px;
+  border-radius:10px;
+  font-size:16px;
+  width:100%;
 }
+
 button:hover{
-background:#354edb;
+  background:#354edb;
 }
-</style>
-</style>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Booking</title>
 
+/* Availability dots */
+.availability-dot{
+  display:block;
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  margin:2px auto 0;
+}
+.dot-green{ background:#2ecc71; }
+.dot-orange{ background:#f39c12; }
+.dot-red{ background:#e74c3c; }
+</style>
 </head>
-  <!-- Flatpickr CSS -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; }
-    
-    /* Availability Dots */
-    .availability-dot {
-      display: block;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      margin: 2px auto 0;
-    }
-    .dot-green { background-color: #2ecc71; }
-    .dot-orange { background-color: #f39c12; }
-    .dot-red { background-color: #e74c3c; }
-    
-    /* Other styles */
-    .time { padding: 10px; border: 1px solid #ccc; display: inline-block; margin: 5px; cursor: pointer; }
-    .time.selected { background-color: #4CAF50; color: white; }
-  </style>
-</head>
 <body>
 
 <div class="booking-container">
 <h1>Book Your Service</h1>
-  <h1>Book a Service</h1>
 
-<h3>Select a Date</h3>
-<input id="datePicker" placeholder="Click to select a date" readonly>
-  <label>Name:</label><br>
-  <input type="text" id="bookingName" style="width: 100%; padding: 8px; margin-bottom: 10px;"><br>
+<label>Name</label>
+<input id="bookingName" placeholder="Full Name">
 
-<h3>Select a Time</h3>
-<div id="times" class="times"></div>
-  <label>Phone:</label><br>
-  <input type="tel" id="bookingPhone" style="width: 100%; padding: 8px; margin-bottom: 10px;"><br>
-
-<input id="bookingName" placeholder="Full Name" required>
+<label>Phone</label>
 <input id="bookingPhone" placeholder="Phone Number">
-  <label>Service:</label><br>
-  <select id="service" style="width: 100%; padding: 8px; margin-bottom: 10px;">
-    <option value="">Select a service</option>
-    <option value="Pressure Cleaning">Pressure Cleaning</option>
-    <option value="Gardening">Gardening</option>
-    <option value="Gutter Cleaning">Gutter Cleaning</option>
-  </select>
 
-  <div id="subServiceContainer" style="display: none;">
-    <label>Type:</label><br>
-    <select id="subService" style="width: 100%; padding: 8px; margin-bottom: 10px;"></select>
-  </div>
-
-<label style="margin-top:15px;font-weight:600;">Select Service</label>
+<label>Service</label>
 <select id="service">
   <option value="">Choose a service...</option>
   <option value="Pressure Cleaning">Pressure Cleaning</option>
   <option value="Gardening">Gardening</option>
   <option value="Gutter Cleaning">Gutter Cleaning</option>
 </select>
-  <label>Date:</label><br>
-  <input type="text" id="datePicker" style="width: 100%; padding: 8px; margin-bottom: 10px;">
 
 <div id="subServiceContainer" style="display:none;">
-  <label id="subLabel" style="margin-top:15px;font-weight:600;">What do you want done?</label>
+  <label id="subLabel">Type</label>
   <select id="subService"></select>
 </div>
-  <div id="times"></div>
+
+<label>Date</label>
+<input id="datePicker" placeholder="Select a date" readonly>
+
+<label>Select Period</label>
+<div id="periods" class="times">
+  <div class="time" id="morningBtn">☀️ Morning</div>
+  <div class="time" id="noonBtn">🌤️ Noon</div>
+</div>
+
+<label id="timeLabel" style="display:none;">Select Time Range</label>
+<div id="times" class="times"></div>
+
 
 <button id="book">Confirm Booking</button>
 </div>
-  
-</div>
-  <br><br>
-  <button id="book" style="width: 100%; padding: 15px; background-color: #4CAF50; color: white; border: none; font-size: 16px;">Book Now</button>
 
-<script type="module" src="booking.js"></script>
-</body>
-</html>
-  <!-- Flatpickr JS -->
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-  <!-- Your JavaScript Code -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-    const firebaseConfig = {
-      apiKey: "AIzaSyBv8Iap6L0Zz8U_0k3tQ-Bkb6KI9vGDbtI",
-      authDomain: "prosper-e5c0d.firebaseapp.com",
-      projectId: "prosper-e5c0d",
-      storageBucket: "prosper-e5c0d.appspot.com",
-      messagingSenderId: "745275197601",
-      appId: "1:745275197601:web:e2f1f1e86013a382f048e0"
-    };
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const bookingsRef = collection(db, "bookings");
-    const slotsDiv = document.getElementById("times");
-    const serviceSelect = document.getElementById("service");
-    const subServiceSelect = document.getElementById("subService");
-    const subContainer = document.getElementById("subServiceContainer");
+<script type="module">
 
-    let selectedDate = null;
-    let startTime = null;
-    let endTime = null;
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-<!-- IMPORTANT: ONLY THIS SCRIPT -->
-    const serviceOptions = {
-      "Pressure Cleaning": ["Driveway/ Paths","Car","Bins","Boat"],
-      "Gardening": ["Lawn Mowing & Edging","Pruning Trees/Bushes","Leaf Cleanup"],
-      "Gutter Cleaning": ["Single Storey House","Double Storey House"]
-    };
-    serviceSelect.onchange = () => {
-      const selected = serviceSelect.value;
-      subServiceSelect.innerHTML = "";
-      if (!serviceOptions[selected]) {
-        subContainer.style.display = "none";
-        return;
-      }
-      subContainer.style.display = "block";
-      serviceOptions[selected].forEach(option => {
-        const opt = document.createElement("option");
-        opt.value = option;
-        opt.textContent = option;
-        subServiceSelect.appendChild(opt);
-      });
-    };
-    function toMinutes(t){
-      const [h,m] = t.split(":");
-      return parseInt(h)*60 + parseInt(m);
+/* FIREBASE */
+const firebaseConfig = {
+  apiKey: "AIzaSyBv8Iap6L0Zz8U_0k3tQ-Bkb6KI9vGDbtI",
+  authDomain: "prosper-e5c0d.firebaseapp.com",
+  projectId: "prosper-e5c0d",
+  storageBucket: "prosper-e5c0d.appspot.com",
+  messagingSenderId: "745275197601",
+  appId: "1:745275197601:web:e2f1f1e86013a382f048e0"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const bookingsRef = collection(db, "bookings");
+
+/* SERVICE TYPES */
+const serviceOptions = {
+  "Pressure Cleaning": ["Driveway/Paths","Car","Bins","Boat"],
+  "Gardening": ["Lawn Mowing & Edging","Pruning Trees/Bushes","Leaf Cleanup"],
+  "Gutter Cleaning": ["Single Storey House","Double Storey House"]
+};
+
+const serviceSelect = document.getElementById("service");
+const subServiceSelect = document.getElementById("subService");
+const subContainer = document.getElementById("subServiceContainer");
+
+serviceSelect.onchange = ()=>{
+  const selected=serviceSelect.value;
+  subServiceSelect.innerHTML="";
+  if(!serviceOptions[selected]){
+    subContainer.style.display="none";
+    return;
+  }
+  subContainer.style.display="block";
+  serviceOptions[selected].forEach(option=>{
+    const opt=document.createElement("option");
+    opt.value=option;
+    opt.textContent=option;
+    subServiceSelect.appendChild(opt);
+  });
+};
+
+/* TIME SLOT SYSTEM */
+const slotsDiv=document.getElementById("times");
+let selectedDate=null;
+let startTime=null;
+let endTime=null;
+
+function toMinutes(t){
+  const [h,m]=t.split(":");
+  return parseInt(h)*60+parseInt(m);
+}
+
+function generateSlots(day){
+  let slots=[];
+  if(day===0 || day===6){
+    for(let h=9;h<17;h++){
+      slots.push(`${String(h).padStart(2,'0')}:00`);
+      slots.push(`${String(h).padStart(2,'0')}:30`);
     }
-    function generateSlots(day){
-      let slots=[];
-      if(day===0 || day===6){
-        for(let h=9;h<17;h++){
-          slots.push(`${String(h).padStart(2,'0')}:00`);
-          slots.push(`${String(h).padStart(2,'0')}:30`);
+  }else if(day===1 || day===3 || day===4){
+    slots=["16:00","16:30"];
+  }
+  return slots;
+}
+
+let monthBookings={};
+
+async function loadMonthBookings(year,month){
+  monthBookings={};
+  const start=`${year}-${String(month+1).padStart(2,'0')}-01`;
+  const end=`${year}-${String(month+1).padStart(2,'0')}-31`;
+  const q=query(bookingsRef,where("date",">=",start),where("date","<=",end));
+  const snap=await getDocs(q);
+  snap.forEach(doc=>{
+    const b=doc.data();
+    if(!monthBookings[b.date]) monthBookings[b.date]=[];
+    monthBookings[b.date].push(b);
+  });
+}
+
+/* CALENDAR */
+flatpickr("#datePicker",{
+  minDate:"today",
+  dateFormat:"Y-m-d",
+  onReady: async function(selectedDates,dateStr,fp){
+    await loadMonthBookings(fp.currentYear,fp.currentMonth);
+  },
+  onMonthChange: async function(selectedDates,dateStr,fp){
+    await loadMonthBookings(fp.currentYear,fp.currentMonth);
+  },
+  onChange: async function(selectedDates,dateStr){
+    selectedDate=dateStr;
+    startTime=null;
+    endTime=null;
+    slotsDiv.innerHTML="Loading times...";
+
+    const chosenDate=new Date(dateStr);
+    const allowedSlots=generateSlots(chosenDate.getDay());
+
+    if(allowedSlots.length===0){
+      slotsDiv.innerHTML="No availability on this day.";
+      return;
+    }
+
+    const bookings=monthBookings[dateStr]||[];
+    let booked=[];
+
+    bookings.forEach(b=>{
+      allowedSlots.forEach(slot=>{
+        if(toMinutes(slot)>=toMinutes(b.start)&&toMinutes(slot)<toMinutes(b.end)){
+          booked.push(slot);
         }
-      }
-      else if(day===1 || day===3 || day===4){
-        slots=["16:00","16:30"];
-      }
-      else{
-        return [];
-      }
-      return slots;
-    }
-    let monthBookings = {};
-    async function loadMonthBookings(year, month){
-      monthBookings = {};
-      const start = `${year}-${String(month+1).padStart(2,'0')}-01`;
-      const end   = `${year}-${String(month+1).padStart(2,'0')}-31`;
-      const q = query(bookingsRef, where("date", ">=", start), where("date", "<=", end));
-      const snap = await getDocs(q);
-      snap.forEach(doc=>{
-        const b = doc.data();
-        if(!monthBookings[b.date]) monthBookings[b.date]=[];
-        monthBookings[b.date].push(b);
       });
-    }
-    flatpickr("#datePicker",{
-      minDate:"today",
-      dateFormat:"Y-m-d",
-      onReady: async function(selectedDates,dateStr,fp){
-        await loadMonthBookings(fp.currentYear,fp.currentMonth);
-        fp.redraw();
-      },
-      onMonthChange: async function(selectedDates,dateStr,fp){
-        await loadMonthBookings(fp.currentYear,fp.currentMonth);
-        fp.redraw();
-      },
-      onDayCreate: function(dObj,dStr,fp,dayElem){
-        const dateStr = fp.formatDate(dayElem.dateObj,"Y-m-d");
-        const day = dayElem.dateObj.getDay();
-        const allowedSlots = generateSlots(day);
-        let colorClass = "dot-red";
-        if(allowedSlots.length > 0){
-          const bookings = monthBookings[dateStr] || [];
-          let bookedMinutes=0;
-          bookings.forEach(b=>{
-            if(!b.start||!b.end) return;
-            bookedMinutes += (toMinutes(b.end)-toMinutes(b.start));
-          });
-          const totalMinutes = allowedSlots.length*30;
-          const freeMinutes = totalMinutes-bookedMinutes;
-          if(freeMinutes > 180){
-            colorClass = "dot-green";
-          } else if(freeMinutes > 0){
-            colorClass = "dot-orange";
-          } else {
-            colorClass = "dot-red";
-          }
-        }
-        const dot = document.createElement("span");
-        dot.className = `availability-dot ${colorClass}`;
-        dayElem.appendChild(dot);
-      },
-      onChange: async function(selectedDates,dateStr){
-        selectedDate=dateStr;
-        startTime=null;
-        endTime=null;
-        slotsDiv.innerHTML="Loading times...";
-        const chosenDate=new Date(dateStr);
-        const allowedSlots=generateSlots(chosenDate.getDay());
-        if(allowedSlots.length===0){
-          slotsDiv.innerHTML="No availability on this day.";
+    });
+
+    slotsDiv.innerHTML="";
+
+    allowedSlots.forEach(time=>{
+      if(booked.includes(time)) return;
+
+      const div=document.createElement("div");
+      div.className="time";
+      div.textContent=time;
+      div.dataset.time=time;
+
+      div.onclick=()=>{
+        if(!startTime){
+          startTime=time;
+          div.classList.add("selected");
           return;
         }
-        const bookings = monthBookings[dateStr] || [];
-        let booked=[];
-        bookings.forEach(b=>{
-          if(!b.start||!b.end) return;
-          allowedSlots.forEach(slot=>{
-            if(toMinutes(slot)>=toMinutes(b.start) && toMinutes(slot)<toMinutes(b.end)){
-              booked.push(slot);
-            }
-          });
-        });
-        slotsDiv.innerHTML="";
-        allowedSlots.forEach(time=>{
-          if(booked.includes(time)) return;
-          const div=document.createElement("div");
-          div.className="time";
-          div.textContent=time;
-          div.dataset.time=time;
-          div.onclick=()=>{
-            if(!startTime){
-              startTime=time;
-              div.classList.add("selected");
-              return;
-            }
-            if(!endTime){
-              if(toMinutes(time)<=toMinutes(startTime)){
-                startTime=time;
-                document.querySelectorAll(".time").forEach(s=>s.classList.remove("selected"));
-                div.classList.add("selected");
-                return;
-              }
-              endTime=time;
-              document.querySelectorAll(".time").forEach(slot=>{
-                const t=slot.dataset.time;
-                if(toMinutes(t)>=toMinutes(startTime) && toMinutes(t)<=toMinutes(endTime)){
-                  slot.classList.add("selected");
-                }
-              });
-              return;
-            }
+        if(!endTime){
+          if(toMinutes(time)<=toMinutes(startTime)){
             startTime=time;
-            endTime=null;
             document.querySelectorAll(".time").forEach(s=>s.classList.remove("selected"));
             div.classList.add("selected");
-          };
-          slotsDiv.appendChild(div);
-        });
-        if(slotsDiv.innerHTML===""){
-          slotsDiv.innerHTML="All times are booked.";
+            return;
+          }
+          endTime=time;
+          document.querySelectorAll(".time").forEach(slot=>{
+            const t=slot.dataset.time;
+            if(toMinutes(t)>=toMinutes(startTime)&&toMinutes(t)<=toMinutes(endTime)){
+              slot.classList.add("selected");
+            }
+          });
+          return;
         }
+        startTime=time;
+        endTime=null;
+        document.querySelectorAll(".time").forEach(s=>s.classList.remove("selected"));
+        div.classList.add("selected");
+      };
+
+      slotsDiv.appendChild(div);
+    });
+
+    if(slotsDiv.innerHTML===""){
+      slotsDiv.innerHTML="All times are booked.";
+    }
+  }
+});
+
+/* BOOKING SAVE */
+```html
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+/* FIREBASE */
+const firebaseConfig = {
+  apiKey: "AIzaSyBv8Iap6L0Zz8U_0k3tQ-Bkb6KI9vGDbtI",
+  authDomain: "prosper-e5c0d.firebaseapp.com",
+  projectId: "prosper-e5c0d",
+  storageBucket: "prosper-e5c0d.appspot.com",
+  messagingSenderId: "745275197601",
+  appId: "1:745275197601:web:e2f1f1e86013a382f048e0"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const bookingsRef = collection(db, "bookings");
+
+/* ELEMENTS */
+const slotsDiv = document.getElementById("times");
+const morningBtn = document.getElementById("morningBtn");
+const noonBtn = document.getElementById("noonBtn");
+const timeLabel = document.getElementById("timeLabel");
+
+let selectedDate = null;
+let startTime = null;
+let endTime = null;
+
+function toMinutes(t){
+  const [h,m]=t.split(":");
+  return parseInt(h)*60+parseInt(m);
+}
+
+/* BOOKINGS CACHE */
+let monthBookings={};
+
+async function loadMonthBookings(year,month){
+  monthBookings={};
+  const start=`${year}-${String(month+1).padStart(2,'0')}-01`;
+  const end=`${year}-${String(month+1).padStart(2,'0')}-31`;
+
+  const q=query(bookingsRef,where("date",">=",start),where("date","<=",end));
+  const snap=await getDocs(q);
+
+  snap.forEach(doc=>{
+    const b=doc.data();
+    if(!monthBookings[b.date]) monthBookings[b.date]=[];
+    monthBookings[b.date].push(b);
+  });
+}
+
+/* CALENDAR */
+flatpickr("#datePicker",{
+  minDate:"today",
+  dateFormat:"Y-m-d",
+
+  onReady: async function(selectedDates,dateStr,fp){
+    await loadMonthBookings(fp.currentYear,fp.currentMonth);
+  },
+
+  onMonthChange: async function(selectedDates,dateStr,fp){
+    await loadMonthBookings(fp.currentYear,fp.currentMonth);
+  },
+
+  onChange: async function(selectedDates,dateStr){
+    selectedDate=dateStr;
+    startTime=null;
+    endTime=null;
+    slotsDiv.innerHTML="";
+    timeLabel.style.display="none";
+    morningBtn.classList.remove("selected");
+    noonBtn.classList.remove("selected");
+  }
+});
+
+/* SLOT GENERATION */
+function generateSlotsForPeriod(period){
+  let slots=[];
+
+  if(period==="morning"){
+    let minutes=8*60+30;
+    while(minutes<=12*60){
+      const h=Math.floor(minutes/60);
+      const m=minutes%60;
+      slots.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
+      minutes+=30;
+    }
+  }
+
+  if(period==="noon"){
+    let minutes=12*60+30;
+    while(minutes<=17*60){
+      const h=Math.floor(minutes/60);
+      const m=minutes%60;
+      slots.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
+      minutes+=30;
+    }
+  }
+
+  return slots;
+}
+
+/* SHOW TIMES */
+async function showTimes(period){
+
+  if(!selectedDate){
+    alert("Please select a date first.");
+    return;
+  }
+
+  timeLabel.style.display="block";
+
+  morningBtn.classList.remove("selected");
+  noonBtn.classList.remove("selected");
+  if(period==="morning") morningBtn.classList.add("selected");
+  else noonBtn.classList.add("selected");
+
+  const allowedSlots=generateSlotsForPeriod(period);
+  const bookings=monthBookings[selectedDate]||[];
+
+  let booked=[];
+
+  bookings.forEach(b=>{
+    allowedSlots.forEach(slot=>{
+      if(toMinutes(slot)<toMinutes(b.end)&&toMinutes(slot)+30>toMinutes(b.start)){
+        booked.push(slot);
       }
     });
-    document.getElementById("book").onclick=async()=>{
-      const name=document.getElementById("bookingName").value.trim();
-      const phone=document.getElementById("bookingPhone").value.trim();
-      const service=serviceSelect.value;
-      const subService=subServiceSelect.value;
-      if(!name || !selectedDate || !startTime || !endTime || !service){
-        alert("Please select a start AND end time.");
+  });
+
+  slotsDiv.innerHTML="";
+
+  allowedSlots.forEach(time=>{
+    if(booked.includes(time)) return;
+
+    const div=document.createElement("div");
+    div.className="time";
+    div.textContent=time;
+    div.dataset.time=time;
+
+    div.onclick=()=>{
+      if(!startTime){
+        startTime=time;
+        div.classList.add("selected");
         return;
       }
-      await addDoc(bookingsRef,{
-        name,
-        phone:phone||"",
-        service,
-        subService,
-        date:selectedDate,
-        start:startTime,
-        end:endTime,
-        created:new Date()
-      });
-      alert("Booking Confirmed!");
-      location.reload();
+
+      if(!endTime){
+        if(toMinutes(time)<=toMinutes(startTime)){
+          startTime=time;
+          document.querySelectorAll("#times .time").forEach(s=>s.classList.remove("selected"));
+          div.classList.add("selected");
+          return;
+        }
+
+        endTime=time;
+        document.querySelectorAll("#times .time").forEach(slot=>{
+          const t=slot.dataset.time;
+          if(toMinutes(t)>=toMinutes(startTime)&&toMinutes(t)<=toMinutes(endTime)){
+            slot.classList.add("selected");
+          }
+        });
+        return;
+      }
+
+      startTime=time;
+      endTime=null;
+      document.querySelectorAll("#times .time").forEach(s=>s.classList.remove("selected"));
+      div.classList.add("selected");
     };
-  </script>
+
+    slotsDiv.appendChild(div);
+  });
+
+  if(slotsDiv.innerHTML===""){
+    slotsDiv.innerHTML="All times booked.";
+  }
+}
+
+morningBtn.onclick=()=>showTimes("morning");
+noonBtn.onclick=()=>showTimes("noon");
+
+/* BOOK */
+document.getElementById("book").onclick=async()=>{
+  const name=document.getElementById("bookingName").value.trim();
+  const phone=document.getElementById("bookingPhone").value.trim();
+  const service=document.getElementById("service").value;
+  const subService=document.getElementById("subService").value;
+
+  if(!name||!selectedDate||!startTime||!endTime||!service){
+    alert("Please select a start AND end time.");
+    return;
+  }
+
+  await addDoc(bookingsRef,{
+    name,
+    phone,
+    service,
+    subService,
+    date:selectedDate,
+    start:startTime,
+    end:endTime,
+    created:new Date()
+  });
+
+  alert("Booking Confirmed!");
+  location.reload();
+};
+
+</script>
+```
+
+
 </body>
 </html>
-```
-0 commit comments
-Comments
-0
- (0)
-Comment
-You're receiving notifications because you're subscribed to this thread.
