@@ -1,17 +1,97 @@
+
++266
+-119
+Lines changed: 266 additions & 119 deletions
+Original file line number	Diff line number	Diff line change
+@@ -1,136 +1,283 @@
 <think>
 The user is confused about where to put the code. Let me simplify this and just give them the complete HTML file so they can copy-paste the whole thing and replace their existing file.
-
 I'll provide the full HTML file with everything included - the CSS in the head, and the JavaScript in the script tag.
 </think>. It has everything included.
-
 ```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book a Service - Prosper's Services</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<!-- Flatpickr Calendar -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<style>
+<style>
+/* ===== PAGE BACKGROUND ===== */
+<style>
+body{
+font-family:Poppins, sans-serif;
+background:#f5f7fb;
+margin:0;
+padding:0;
+}
+.booking-container{
+max-width:900px;
+margin:50px auto;
+background:white;
+padding:30px;
+border-radius:12px;
+box-shadow:0 10px 30px rgba(0,0,0,0.1);
+}
+h1{
+text-align:center;
+margin-bottom:25px;
+}
+.times{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:12px;
+margin-bottom:25px;
+}
+.time{
+padding:14px;
+border:2px solid #4f6cff;
+border-radius:10px;
+text-align:center;
+cursor:pointer;
+transition:0.2s;
+}
+.time:hover{
+background:#4f6cff;
+color:white;
+}
+.time.selected{
+background:#4f6cff;
+color:white;
+}
+input, select{
+width:100%;
+padding:14px;
+margin-top:12px;
+border-radius:10px;
+border:1px solid #ccc;
+font-size:16px;
+}
+button{
+background:#4f6cff;
+color:white;
+border:none;
+cursor:pointer;
+padding:14px;
+margin-top:18px;
+border-radius:10px;
+font-size:16px;
+width:100%;
+}
+button:hover{
+background:#354edb;
+}
+</style>
+</style>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Booking</title>
 
+</head>
   <!-- Flatpickr CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
@@ -37,14 +117,22 @@ I'll provide the full HTML file with everything included - the CSS in the head, 
 </head>
 <body>
 
+<div class="booking-container">
+<h1>Book Your Service</h1>
   <h1>Book a Service</h1>
 
+<h3>Select a Date</h3>
+<input id="datePicker" placeholder="Click to select a date" readonly>
   <label>Name:</label><br>
   <input type="text" id="bookingName" style="width: 100%; padding: 8px; margin-bottom: 10px;"><br>
 
+<h3>Select a Time</h3>
+<div id="times" class="times"></div>
   <label>Phone:</label><br>
   <input type="tel" id="bookingPhone" style="width: 100%; padding: 8px; margin-bottom: 10px;"><br>
 
+<input id="bookingName" placeholder="Full Name" required>
+<input id="bookingPhone" placeholder="Phone Number">
   <label>Service:</label><br>
   <select id="service" style="width: 100%; padding: 8px; margin-bottom: 10px;">
     <option value="">Select a service</option>
@@ -58,22 +146,38 @@ I'll provide the full HTML file with everything included - the CSS in the head, 
     <select id="subService" style="width: 100%; padding: 8px; margin-bottom: 10px;"></select>
   </div>
 
+<label style="margin-top:15px;font-weight:600;">Select Service</label>
+<select id="service">
+  <option value="">Choose a service...</option>
+  <option value="Pressure Cleaning">Pressure Cleaning</option>
+  <option value="Gardening">Gardening</option>
+  <option value="Gutter Cleaning">Gutter Cleaning</option>
+</select>
   <label>Date:</label><br>
   <input type="text" id="datePicker" style="width: 100%; padding: 8px; margin-bottom: 10px;">
 
+<div id="subServiceContainer" style="display:none;">
+  <label id="subLabel" style="margin-top:15px;font-weight:600;">What do you want done?</label>
+  <select id="subService"></select>
+</div>
   <div id="times"></div>
 
+<button id="book">Confirm Booking</button>
+</div>
+  
+</div>
   <br><br>
   <button id="book" style="width: 100%; padding: 15px; background-color: #4CAF50; color: white; border: none; font-size: 16px;">Book Now</button>
 
+<script type="module" src="booking.js"></script>
+</body>
+</html>
   <!-- Flatpickr JS -->
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
   <!-- Your JavaScript Code -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-
     const firebaseConfig = {
       apiKey: "AIzaSyBv8Iap6L0Zz8U_0k3tQ-Bkb6KI9vGDbtI",
       authDomain: "prosper-e5c0d.firebaseapp.com",
@@ -82,11 +186,9 @@ I'll provide the full HTML file with everything included - the CSS in the head, 
       messagingSenderId: "745275197601",
       appId: "1:745275197601:web:e2f1f1e86013a382f048e0"
     };
-
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const bookingsRef = collection(db, "bookings");
-
     const slotsDiv = document.getElementById("times");
     const serviceSelect = document.getElementById("service");
     const subServiceSelect = document.getElementById("subService");
@@ -96,12 +198,12 @@ I'll provide the full HTML file with everything included - the CSS in the head, 
     let startTime = null;
     let endTime = null;
 
+<!-- IMPORTANT: ONLY THIS SCRIPT -->
     const serviceOptions = {
       "Pressure Cleaning": ["Driveway/ Paths","Car","Bins","Boat"],
       "Gardening": ["Lawn Mowing & Edging","Pruning Trees/Bushes","Leaf Cleanup"],
       "Gutter Cleaning": ["Single Storey House","Double Storey House"]
     };
-
     serviceSelect.onchange = () => {
       const selected = serviceSelect.value;
       subServiceSelect.innerHTML = "";
@@ -117,12 +219,10 @@ I'll provide the full HTML file with everything included - the CSS in the head, 
         subServiceSelect.appendChild(opt);
       });
     };
-
     function toMinutes(t){
       const [h,m] = t.split(":");
       return parseInt(h)*60 + parseInt(m);
     }
-
     function generateSlots(day){
       let slots=[];
       if(day===0 || day===6){
@@ -139,9 +239,7 @@ I'll provide the full HTML file with everything included - the CSS in the head, 
       }
       return slots;
     }
-
     let monthBookings = {};
-
     async function loadMonthBookings(year, month){
       monthBookings = {};
       const start = `${year}-${String(month+1).padStart(2,'0')}-01`;
@@ -154,7 +252,6 @@ I'll provide the full HTML file with everything included - the CSS in the head, 
         monthBookings[b.date].push(b);
       });
     }
-
     flatpickr("#datePicker",{
       minDate:"today",
       dateFormat:"Y-m-d",
@@ -254,7 +351,6 @@ I'll provide the full HTML file with everything included - the CSS in the head, 
         }
       }
     });
-
     document.getElementById("book").onclick=async()=>{
       const name=document.getElementById("bookingName").value.trim();
       const phone=document.getElementById("bookingPhone").value.trim();
@@ -281,3 +377,9 @@ I'll provide the full HTML file with everything included - the CSS in the head, 
 </body>
 </html>
 ```
+0 commit comments
+Comments
+0
+ (0)
+Comment
+You're receiving notifications because you're subscribed to this thread.
