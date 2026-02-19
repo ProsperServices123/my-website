@@ -1,3 +1,4 @@
+```javascript
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
@@ -21,9 +22,15 @@ const serviceSelect = document.getElementById("service");
 const subServiceSelect = document.getElementById("subService");
 const subContainer = document.getElementById("subServiceContainer");
 
+const morningBtn = document.getElementById("morningBtn");
+const noonBtn = document.getElementById("noonBtn");
+const timeLabel = document.getElementById("timeLabel");
+
+/* ---------------- STATE ---------------- */
 let selectedDate = null;
 let startTime = null;
 let endTime = null;
+let selectedPeriod = null;
 
 /* ---------------- SERVICES ---------------- */
 const serviceOptions = {
@@ -57,23 +64,34 @@ function toMinutes(t){
   return parseInt(h)*60 + parseInt(m);
 }
 
-function generateSlots(day){
+/* CORRECT TIME RANGES */
+function generateSlotsForPeriod(period){
   let slots=[];
 
-  // WEEKENDS 9am–5pm
-  if(day===0 || day===6){
-    for(let h=9;h<17;h++){
-      slots.push(`${String(h).padStart(2,'0')}:00`);
-      slots.push(`${String(h).padStart(2,'0')}:30`);
+  if(period==="morning"){
+    // 08:30 → 12:00
+    let minutes = toMinutes("08:30");
+    const end   = toMinutes("12:00");
+
+    while(minutes <= end){
+      const h = Math.floor(minutes/60);
+      const m = minutes%60;
+      slots.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
+      minutes += 30;
     }
   }
-  // MON WED THU 4pm–5pm
-  else if(day===1 || day===3 || day===4){
-    slots=["16:00","16:30"];
-  }
-  // TUE FRI CLOSED
-  else{
-    return [];
+
+  if(period==="noon"){
+    // 12:30 → 17:00
+    let minutes = toMinutes("12:30");
+    const end   = toMinutes("17:00");
+
+    while(minutes <= end){
+      const h = Math.floor(minutes/60);
+      const m = minutes%60;
+      slots.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
+      minutes += 30;
+    }
   }
 
   return slots;
@@ -105,127 +123,157 @@ flatpickr("#datePicker",{
 
   onReady: async function(selectedDates,dateStr,fp){
     await loadMonthBookings(fp.currentYear,fp.currentMonth);
-    fp.redraw();
   },
 
   onMonthChange: async function(selectedDates,dateStr,fp){
     await loadMonthBookings(fp.currentYear,fp.currentMonth);
-    fp.redraw();
   },
 
-  /* COLOUR DAYS */
-  onDayCreate: function(dObj,dStr,fp,dayElem){
-
-    const dateStr = fp.formatDate(dayElem.dateObj,"Y-m-d");
-    const day = dayElem.dateObj.getDay();
-    const allowedSlots = generateSlots(day);
-
-    if(allowedSlots.length===0){
-      dayElem.classList.add("available-none");
-      return;
-    }
-
-    const bookings = monthBookings[dateStr] || [];
-
-    let bookedMinutes=0;
-    bookings.forEach(b=>{
-      if(!b.start||!b.end) return;
-      bookedMinutes += (toMinutes(b.end)-toMinutes(b.start));
-    });
-
-    const totalMinutes = allowedSlots.length*30;
-    const freeMinutes = totalMinutes-bookedMinutes;
-
-    if(freeMinutes<=0){
-      dayElem.classList.add("available-none");
-    }
-    else if(freeMinutes<=180){
-      dayElem.classList.add("available-some");
-    }
-    else{
-      dayElem.classList.add("available-full");
-    }
-  },
-
-  /* SHOW TIMES */
   onChange: async function(selectedDates,dateStr){
-
-    selectedDate=dateStr;
-    startTime=null;
-    endTime=null;
-    slotsDiv.innerHTML="Loading times...";
-
-    const chosenDate=new Date(dateStr);
-    const allowedSlots=generateSlots(chosenDate.getDay());
-
-    if(allowedSlots.length===0){
-      slotsDiv.innerHTML="No availability on this day.";
-      return;
-    }
-
-    const bookings = monthBookings[dateStr] || [];
-    let booked=[];
-
-    bookings.forEach(b=>{
-      if(!b.start||!b.end) return;
-      allowedSlots.forEach(slot=>{
-        if(toMinutes(slot)>=toMinutes(b.start) && toMinutes(slot)<toMinutes(b.end)){
-          booked.push(slot);
-        }
-      });
-    });
+    selectedDate = dateStr;
+    startTime = null;
+    endTime = null;
+    selectedPeriod = null;
 
     slotsDiv.innerHTML="";
+    timeLabel.style.display="none";
 
-    allowedSlots.forEach(time=>{
-      if(booked.includes(time)) return;
-
-      const div=document.createElement("div");
-      div.className="time";
-      div.textContent=time;
-      div.dataset.time=time;
-
-      div.onclick=()=>{
-
-        if(!startTime){
-          startTime=time;
-          div.classList.add("selected");
-          return;
-        }
-
-        if(!endTime){
-          if(toMinutes(time)<=toMinutes(startTime)){
-            startTime=time;
-            document.querySelectorAll(".time").forEach(s=>s.classList.remove("selected"));
-            div.classList.add("selected");
-            return;
-          }
-
-          endTime=time;
-
-          document.querySelectorAll(".time").forEach(slot=>{
-            const t=slot.dataset.time;
-            if(toMinutes(t)>=toMinutes(startTime) && toMinutes(t)<=toMinutes(endTime)){
-              slot.classList.add("selected");
-            }
-          });
-          return;
-        }
-
-        startTime=time;
-        endTime=null;
-        document.querySelectorAll(".time").forEach(s=>s.classList.remove("selected"));
-        div.classList.add("selected");
-      };
-
-      slotsDiv.appendChild(div);
-    });
-
-    if(slotsDiv.innerHTML===""){
-      slotsDiv.innerHTML="All times are booked.";
-    }
+    morningBtn.classList.remove("selected");
+    noonBtn.classList.remove("selected");
   }
 });
+function getContinuousEndTimes(start, allowedSlots, bookedSlots){
+
+  const valid = [];
+  let started = false;
+
+  for(const slot of allowedSlots){
+
+    if(slot === start){
+      started = true;
+      continue;
+    }
+
+    if(!started) continue;
+
+    // stop when we hit a booked slot
+    if(bookedSlots.includes(slot)) break;
+
+    valid.push(slot);
+  }
+
+  return valid;
+}
+
+/* ---------------- PERIOD SELECT ---------------- */
+async function showTimes(period){
+
+  if(!selectedDate){
+    alert("Please select a date first.");
+    return;
+  }
+
+  selectedPeriod = period;
+
+  morningBtn.classList.remove("selected");
+  noonBtn.classList.remove("selected");
+
+  if(period==="morning") morningBtn.classList.add("selected");
+  else noonBtn.classList.add("selected");
+
+  timeLabel.style.display="block";
+  slotsDiv.innerHTML="Loading times...";
+
+  const allowedSlots = generateSlotsForPeriod(period);
+  const bookings = monthBookings[selectedDate] || [];
+
+  let booked=[];
+
+  bookings.forEach(b=>{
+    allowedSlots.forEach(slot=>{
+      if(toMinutes(slot) < toMinutes(b.end) && toMinutes(slot)+30 > toMinutes(b.start)){
+        booked.push(slot);
+      }
+    });
+  });
+
+  slotsDiv.innerHTML="";
+
+  allowedSlots.forEach(time=>{
+    if(booked.includes(time)) return;
+
+    const div=document.createElement("div");
+    div.className="time";
+    div.textContent=time;
+    div.dataset.time=time;
+
+   div.onclick = () => {
+
+  // -------- PICK START TIME --------
+  if(!startTime){
+
+    startTime = time;
+    endTime = null;
+
+    document.querySelectorAll("#times .time").forEach(s=>s.classList.remove("selected"));
+    div.classList.add("selected");
+
+    // Only allow valid end times
+    const validEnds = getContinuousEndTimes(startTime, allowedSlots, booked);
+
+    document.querySelectorAll("#times .time").forEach(slot=>{
+      const t = slot.dataset.time;
+
+      if(t !== startTime && !validEnds.includes(t)){
+        slot.style.opacity="0.3";
+        slot.style.pointerEvents="none";
+      }
+    });
+
+    return;
+  }
+
+  // -------- PICK END TIME --------
+  if(!endTime){
+
+    if(toMinutes(time)<=toMinutes(startTime)) return;
+
+    endTime = time;
+
+    document.querySelectorAll("#times .time").forEach(slot=>{
+      const t = slot.dataset.time;
+
+      if(toMinutes(t)>=toMinutes(startTime)&&toMinutes(t)<=toMinutes(endTime)){
+        slot.classList.add("selected");
+      }
+    });
+
+    return;
+  }
+
+  // -------- RESET --------
+  startTime = time;
+  endTime = null;
+
+  document.querySelectorAll("#times .time").forEach(s=>{
+    s.classList.remove("selected");
+    s.style.opacity="1";
+    s.style.pointerEvents="auto";
+  });
+
+  div.classList.add("selected");
+};
+
+    slotsDiv.appendChild(div);
+  });
+
+  if(slotsDiv.innerHTML===""){
+    slotsDiv.innerHTML="All times booked in this period.";
+  }
+}
+
+morningBtn.onclick=()=>showTimes("morning");
+noonBtn.onclick=()=>showTimes("noon");
 
 /* ---------------- BOOK ---------------- */
 document.getElementById("book").onclick=async()=>{
@@ -242,7 +290,7 @@ document.getElementById("book").onclick=async()=>{
 
   await addDoc(bookingsRef,{
     name,
-    phone:phone||"",
+    phone,
     service,
     subService,
     date:selectedDate,
@@ -254,3 +302,4 @@ document.getElementById("book").onclick=async()=>{
   alert("Booking Confirmed!");
   location.reload();
 };
+```
