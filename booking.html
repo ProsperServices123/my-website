@@ -1,377 +1,114 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Book a Service - Prosper's Services</title>
-
-  <!-- Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-
-  <!-- Flatpickr -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
-  <style>
-    body{
-      font-family:Poppins, sans-serif;
-      background:#f5f7fb;
-      margin:0;
-    }
-
-    .booking-container{
-      max-width:900px;
-      margin:50px auto;
-      background:white;
-      padding:30px;
-      border-radius:12px;
-      box-shadow:0 10px 30px rgba(0,0,0,0.1);
-    }
-
-    h1{
-      text-align:center;
-    }
-
-    label{
-      font-weight:600;
-      display:block;
-      margin-top:15px;
-    }
-
-    input, select{
-      width:100%;
-      padding:14px;
-      margin-top:8px;
-      border-radius:10px;
-      border:1px solid #ccc;
-      font-size:16px;
-    }
-
-    .times{
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:12px;
-      margin-top:15px;
-    }
-
-    .time{
-      padding:14px;
-      border:2px solid #4f6cff;
-      border-radius:10px;
-      text-align:center;
-      cursor:pointer;
-      transition:0.2s;
-    }
-
-    .time:hover{
-      background:#4f6cff;
-      color:white;
-    }
-
-    .time.selected{
-      background:#4f6cff;
-      color:white;
-    }
-
-    button{
-      background:#4f6cff;
-      color:white;
-      border:none;
-      cursor:pointer;
-      padding:14px;
-      margin-top:20px;
-      border-radius:10px;
-      font-size:16px;
-      width:100%;
-    }
-
-    button:hover{
-      background:#354edb;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Book — Prosper's Services</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
 </head>
-
 <body>
 
-<div class="booking-container">
-  <h1>Book Your Service</h1>
+  <!-- Desktop Top Nav -->
+  <nav class="desktop-nav">
+    <span class="nav-brand">🌿 Prosper's Services</span>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="index.html#services">Services</a></li>
+      <li><a href="index.html#reviews">Reviews</a></li>
+      <li><a href="index.html#contact">Contact</a></li>
+      <li><a href="booking.html" class="nav-cta active">Book Now</a></li>
+    </ul>
+  </nav>
 
-  <label>Name</label>
-  <input id="bookingName" placeholder="Full Name">
+  <header class="page-header">
+    <a href="index.html" class="btn-back">← Back to Home</a>
+    <h1>📅 Book a Service</h1>
+  </header>
 
-  <label>Phone</label>
-  <input id="bookingPhone" placeholder="Phone Number">
+  <main>
+    <!-- Desktop: two-column grid wrapping steps 1+2 and step 3 -->
+    <div class="booking-desktop-grid">
 
-  <label>Service</label>
-  <select id="service">
-    <option value="">Choose a service...</option>
-    <option value="Pressure Cleaning">Pressure Cleaning</option>
-    <option value="Gardening">Gardening</option>
-    <option value="Gutter Cleaning">Gutter Cleaning</option>
-  </select>
+      <div>
+        <!-- Step 1: Your Details -->
+        <section class="booking-section">
+          <h2>Your Details</h2>
+          <div class="form-card">
+            <div>
+              <label class="form-label">Full Name *</label>
+              <input type="text" id="bookingName" placeholder="John Smith" />
+            </div>
+            <div>
+              <label class="form-label">Phone Number</label>
+              <input type="tel" id="bookingPhone" placeholder="04XX XXX XXX" />
+            </div>
+          </div>
+        </section>
 
-  <div id="subServiceContainer" style="display:none;">
-    <label id="subLabel">Type</label>
-    <select id="subService"></select>
-  </div>
+        <!-- Step 2: Service -->
+        <section class="booking-section" style="padding-top:0">
+          <h2>Service</h2>
+          <div class="form-card">
+            <div>
+              <label class="form-label">Service Type *</label>
+              <select id="service">
+                <option value="">Select a service...</option>
+                <option value="Pressure Cleaning">Pressure Cleaning</option>
+                <option value="Gardening">Gardening</option>
+                <option value="Gutter Cleaning">Gutter Cleaning</option>
+              </select>
+            </div>
+            <div id="subServiceContainer" style="display:none">
+              <label class="form-label">Specific Service</label>
+              <select id="subService"></select>
+            </div>
+          </div>
+        </section>
+      </div>
 
-  <label>Date</label>
-  <input id="datePicker" placeholder="Select a date" readonly>
+      <!-- Step 3: Date & Time -->
+      <section class="booking-section" style="padding-top:0">
+        <h2>Date & Time</h2>
+        <div class="form-card">
+          <div>
+            <label class="form-label">Pick a Date *</label>
+            <input type="text" id="datePicker" placeholder="Select date..." readonly />
+          </div>
+          <div id="periodContainer" style="display:none">
+            <label class="form-label">Time of Day</label>
+            <div class="period-btns">
+              <button class="period-btn" id="morningBtn">☀️ Morning</button>
+              <button class="period-btn" id="noonBtn">🌤 Afternoon</button>
+            </div>
+            <label class="form-label" id="timeLabel" style="display:none;margin-bottom:8px;">Select Start & End Time</label>
+            <div class="time-grid" id="times"></div>
+          </div>
+        </div>
+      </section>
 
-  <label>Select Period</label>
-  <div id="periods" class="times">
-    <div class="time" id="morningBtn">☀️ Morning</div>
-    <div class="time" id="noonBtn">🌤️ Noon</div>
-  </div>
+    </div>
 
-  <label id="timeLabel" style="display:none;">Select Time Range</label>
-  <div id="times" class="times"></div>
+    <!-- Book Button (full width) -->
+    <div class="booking-full-width">
+      <button class="book-btn" id="book">Confirm Booking</button>
+      <p id="msg" style="margin-top:12px;"></p>
+    </div>
+  </main>
 
-  <button id="book">Confirm Booking</button>
-</div>
+  <footer><p>&copy; 2025 Prosper's Services</p></footer>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+  <!-- Bottom Nav (mobile only) -->
+  <nav class="bottom-nav">
+    <a href="index.html" class="nav-item"><i class="ti ti-home"></i>Home</a>
+    <a href="booking.html" class="nav-item active"><i class="ti ti-calendar"></i>Book</a>
+    <a href="index.html#reviews" class="nav-item"><i class="ti ti-star"></i>Reviews</a>
+    <a href="index.html#contact" class="nav-item"><i class="ti ti-phone"></i>Contact</a>
+  </nav>
 
-  /* FIREBASE */
-  const firebaseConfig = {
-    apiKey: "AIzaSyBv8Iap6L0Zz8U_0k3tQ-Bkb6KI9vGDbtI",
-    authDomain: "prosper-e5c0d.firebaseapp.com",
-    projectId: "prosper-e5c0d",
-    storageBucket: "prosper-e5c0d.appspot.com",
-    messagingSenderId: "745275197601",
-    appId: "1:745275197601:web:e2f1f1e86013a382f048e0"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const bookingsRef = collection(db, "bookings");
-
-  /* SERVICE TYPES */
-  const serviceOptions = {
-    "Pressure Cleaning": ["Driveway/Paths","Car","Bins","Boat"],
-    "Gardening": ["Lawn Mowing & Edging","Pruning Trees/Bushes","Leaf Cleanup"],
-    "Gutter Cleaning": ["Single Storey House","Double Storey House"]
-  };
-
-  const serviceSelect = document.getElementById("service");
-  const subServiceSelect = document.getElementById("subService");
-  const subContainer = document.getElementById("subServiceContainer");
-
-  serviceSelect.onchange = () => {
-    const selected = serviceSelect.value;
-    subServiceSelect.innerHTML = "";
-    if (!serviceOptions[selected]) {
-      subContainer.style.display = "none";
-      return;
-    }
-    subContainer.style.display = "block";
-    serviceOptions[selected].forEach(option => {
-      const opt = document.createElement("option");
-      opt.value = option;
-      opt.textContent = option;
-      subServiceSelect.appendChild(opt);
-    });
-  };
-
-  /* ELEMENTS */
-  const slotsDiv = document.getElementById("times");
-  const morningBtn = document.getElementById("morningBtn");
-  const noonBtn = document.getElementById("noonBtn");
-  const timeLabel = document.getElementById("timeLabel");
-
-  let selectedDate = null;
-  let startTime = null;
-  let endTime = null;
-
-  function toMinutes(t){
-    const [h,m] = t.split(":");
-    return parseInt(h) * 60 + parseInt(m);
-  }
-
-  /* BOOKINGS CACHE */
-  let monthBookings = {};
-
-  async function loadMonthBookings(year, month){
-    monthBookings = {};
-    const start = `${year}-${String(month+1).padStart(2,'0')}-01`;
-    const end   = `${year}-${String(month+1).padStart(2,'0')}-31`;
-
-    const qBookings = query(bookingsRef, where("date", ">=", start), where("date", "<=", end));
-    const snap = await getDocs(qBookings);
-
-    snap.forEach(doc => {
-      const b = doc.data();
-      if (!monthBookings[b.date]) monthBookings[b.date] = [];
-      monthBookings[b.date].push(b);
-    });
-  }
-
-  /* CALENDAR */
-  flatpickr("#datePicker", {
-    minDate: "today",
-    dateFormat: "Y-m-d",
-
-    onReady: async function(selectedDates, dateStr, fp){
-      await loadMonthBookings(fp.currentYear, fp.currentMonth);
-    },
-
-    onMonthChange: async function(selectedDates, dateStr, fp){
-      await loadMonthBookings(fp.currentYear, fp.currentMonth);
-    },
-
-    onChange: async function(selectedDates, dateStr){
-      selectedDate = dateStr;
-      startTime = null;
-      endTime = null;
-      slotsDiv.innerHTML = "";
-      timeLabel.style.display = "none";
-      morningBtn.classList.remove("selected");
-      noonBtn.classList.remove("selected");
-    }
-  });
-
-  /* SLOT GENERATION BY PERIOD */
-  function generateSlotsForPeriod(period){
-    let slots = [];
-
-    if (period === "morning") {
-      let minutes = 8 * 60 + 30; // 8:30
-      while (minutes <= 12 * 60) { // up to 12:00
-        const h = Math.floor(minutes / 60);
-        const m = minutes % 60;
-        slots.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
-        minutes += 30;
-      }
-    }
-
-    if (period === "noon") {
-      let minutes = 12 * 60 + 30; // 12:30
-      while (minutes <= 17 * 60) { // up to 17:00
-        const h = Math.floor(minutes / 60);
-        const m = minutes % 60;
-        slots.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
-        minutes += 30;
-      }
-    }
-
-    return slots;
-  }
-
-  /* SHOW TIMES FOR SELECTED PERIOD */
-  async function showTimes(period){
-    if (!selectedDate) {
-      alert("Please select a date first.");
-      return;
-    }
-
-    timeLabel.style.display = "block";
-
-    morningBtn.classList.remove("selected");
-    noonBtn.classList.remove("selected");
-    if (period === "morning") morningBtn.classList.add("selected");
-    else noonBtn.classList.add("selected");
-
-    const allowedSlots = generateSlotsForPeriod(period);
-    const bookings = monthBookings[selectedDate] || [];
-
-    let booked = [];
-
-    bookings.forEach(b => {
-      allowedSlots.forEach(slot => {
-        // mark as booked if any overlap with existing booking
-        if (toMinutes(slot) < toMinutes(b.end) && toMinutes(slot) + 30 > toMinutes(b.start)) {
-          booked.push(slot);
-        }
-      });
-    });
-
-    slotsDiv.innerHTML = "";
-
-    allowedSlots.forEach(time => {
-      if (booked.includes(time)) return;
-
-      const div = document.createElement("div");
-      div.className = "time";
-      div.textContent = time;
-      div.dataset.time = time;
-
-      div.onclick = () => {
-        if (!startTime) {
-          startTime = time;
-          div.classList.add("selected");
-          return;
-        }
-
-        if (!endTime) {
-          if (toMinutes(time) <= toMinutes(startTime)) {
-            startTime = time;
-            document.querySelectorAll("#times .time").forEach(s => s.classList.remove("selected"));
-            div.classList.add("selected");
-            return;
-          }
-
-          endTime = time;
-          document.querySelectorAll("#times .time").forEach(slot => {
-            const t = slot.dataset.time;
-            if (toMinutes(t) >= toMinutes(startTime) && toMinutes(t) <= toMinutes(endTime)) {
-              slot.classList.add("selected");
-            }
-          });
-          return;
-        }
-
-        // reset selection
-        startTime = time;
-        endTime = null;
-        document.querySelectorAll("#times .time").forEach(s => s.classList.remove("selected"));
-        div.classList.add("selected");
-      };
-
-      slotsDiv.appendChild(div);
-    });
-
-    if (slotsDiv.innerHTML === "") {
-      slotsDiv.innerHTML = "All times booked.";
-    }
-  }
-
-  morningBtn.onclick = () => showTimes("morning");
-  noonBtn.onclick = () => showTimes("noon");
-
-  /* BOOKING SAVE */
-  document.getElementById("book").onclick = async () => {
-    const name = document.getElementById("bookingName").value.trim();
-    const phone = document.getElementById("bookingPhone").value.trim();
-    const service = document.getElementById("service").value;
-    const subService = document.getElementById("subService").value;
-
-    if (!name || !phone || !service || !selectedDate || !startTime || !endTime) {
-      alert("Please fill all fields and select a start AND end time.");
-      return;
-    }
-
-    try {
-      await addDoc(bookingsRef, {
-        name,
-        phone,
-        service,
-        subService,
-        date: selectedDate,
-        start: startTime,
-        end: endTime,
-        created: new Date()
-      });
-
-      alert("Booking Confirmed!");
-      location.reload();
-    } catch (e) {
-      console.error(e);
-      alert("Error saving booking. Please try again.");
-    }
-  };
-</script>
-
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script type="module" src="booking.js"></script>
 </body>
 </html>
