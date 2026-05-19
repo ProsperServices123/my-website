@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Prosper's Services</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet" />
+  <meta name="description" content="Prosper's Services offers affordable gardening, window cleaning, and pet sitting in Perth, WA. Reliable and professional home services." />
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+</head>
+<body>
+
+  <!-- Header Section -->
+  <header>
+    <div class="header-content">
+      <h1>Prosper's Services</h1>
+      <p>Call or text today for low-cost exterior services</p>
+      <a href="booking.html" class="btn">Book Now</a>
+    </div>
+  </header>
+
+  <!-- Services -->
+  <section id="services">
+    <h2>Our Services</h2>
+    <div class="service-container">
+      <a href="gardening.html" class="service">
+        <h3>Gardening</h3>
+        <p>Affordable mowing, edging, pruning, and leaf removal.</p>
+      </a>
+      <a href="windows.html" class="service">
+        <h3>Gutter Cleaning</h3>
+        <p>Removing dirt and grime. Accessible Gutters. Quote by surface.</p>
+      </a>
+      <a href="petsitting.html" class="service">
+        <h3>Pressure Cleaning</h3>
+        <p>Bin cleaning, Driveway washing and Car washing</p>
+      </a>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section id="about" class="about-section">
+    <div class="about-container">
+      <h2>About Me</h2>
+      <p>
+        Hi, I'm Prosper, the founder of this business. With a passion for helping others and a drive to deliver high-quality services, I created this platform to make a positive impact.
+      </p>
+      <p>
+        I believe in professionalism, integrity, and going above and beyond to meet your needs. Outside of work, I enjoy Footy, Basketball and Surfing and always strive to keep learning and growing.
+      </p>
+    </div>
+  </section>
+
+  <!-- Testimonials Slider -->
+  <section id="testimonials" class="testimonials">
+    <div class="container">
+      <h2>What Our Clients Say</h2>
+      <div class="slider-wrapper">
+        <button class="slider-button left" onclick="scrollSlider(-1)">&#10094;</button>
+        <div class="slider" id="testimonials-slider">
+          <div class="testimonials-container" id="testimonials-container">
+            <!-- Reviews will appear here -->
+          </div>
+        </div>
+        <button class="slider-button right" onclick="scrollSlider(1)">&#10095;</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Leave a Review -->
+  <section class="leave-review-section">
+    <h2>Leave a Review</h2>
+    <form id="review-form">
+      <input type="text" id="name" placeholder="Your Name" required />
+      <textarea id="message" placeholder="Your Review" required></textarea>
+      <button type="submit">Submit</button>
+    </form>
+  </section>
+
+  <!-- Contact Info -->
+  <section id="contact">
+    <h2>Contact Us</h2>
+    <div class="contact-details">
+      <div class="contact-item"><span class="icon">📞</span> <strong>Phone: </strong> (+61) 0426 001 023</div>
+      <div class="contact-item"><span class="icon">📧</span> <strong>Email: </strong> prosperfallourd@gmail.com</div>
+      <div class="contact-item"><span class="icon">📍</span> <strong>Location: </strong> Perth, WA</div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 Prosper's Services. All Rights Reserved.</p>
+  </footer>
+
+  <!-- Scroll Function -->
+  <script>
+    function scrollSlider(direction) {
+      const slider = document.getElementById("testimonials-slider");
+      const scrollAmount = 300;
+      slider.scrollBy({ left: scrollAmount * direction, behavior: 'smooth' });
+    }
+  </script>
+
+  <!-- Intersection Observer for testimonials fade-in -->
+  <script>
+    const testimonialsSection = document.querySelector('.testimonials');
+    const observer = new IntersectionObserver(
+      entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            testimonialsSection.classList.add('visible');
+          }
+        });
+      },
+      { threshold: 0.2 }
+    );
+    if (testimonialsSection) {
+      observer.observe(testimonialsSection);
+    }
+  </script>
+
+  <!-- Reviews Script (handles Firebase + form + display) -->
+  <script type="module" src="reviews.js"></script>
+
+</body>
+</html>
