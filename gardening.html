@@ -3,109 +3,66 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Window Cleaning Services - Prosper's Services</title>
-  <link rel="stylesheet" href="styles.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet" />
-  <style>
-    body {
-      font-family: 'Montserrat', sans-serif;
-      font-size: 1.5rem;
-      line-height: 1.8;
-      letter-spacing: 0.3px;
-      color: #333;
-      margin: 0;
-      padding: 0;
-      background-color: #f9f9f9;
-    }
-    header {
-      text-align: center;
-      padding: 2.5rem 0;
-      background-color: #007acc;
-      color: white;
-    }
-    h1 {
-      font-size: 2.5rem;
-      letter-spacing: 1px;
-    }
-    h2 {
-      font-size: 2rem;
-      margin-top: 1.5em;
-      margin-bottom: 0.5em;
-      letter-spacing: 0.8px;
-      color: #1a902d;
-    }
-    .service-list {
-      list-style-type: none;
-      padding: 0;
-    }
-    .service-list li {
-      font-size: 1.5rem;
-      margin-bottom: 0.75em;
-      padding-left: 1.2em;
-      position: relative;
-    }
-    .service-list li::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      padding-left: 1.2em;
-    }
-    p {
-      font-size: 1.5rem;
-      margin-bottom: 1.5em;
-      padding-left: 1.2em;
-    }
-    l {
-      padding-left: 5em;
-    }
-    .btn {
-      display: inline-block;
-      padding: 0.75em 1.5em;
-      background-color: #007acc;
-      color: white;
-      text-decoration: none;
-      border-radius: 5px;
-      transition: background-color 0.3s;
-    }
-    .btn:hover {
-      background-color: #005f99;
-    }
-    footer {
-      text-align: center;
-      padding: 1rem 0;
-      background-color: #005f99;
-      color: white;
-      position: relative;
-      bottom: 0;
-      width: 100%;
-    }
-    @media (max-width: 600px) {
-      h1 { font-size: 2rem; }
-      h2 { font-size: 1.5rem; }
-      .btn { padding: 0.5em 1em; }
-    }
-  </style>
+  <title>Gardening — Prosper's Services</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
 </head>
 <body>
-  <header>
-    <h1>🌿Gardening Services</h1>
-    <a href="index.html" class="btn">← Back to Home</a>
+
+  <!-- Desktop Sidebar -->
+  <nav class="desktop-sidebar">
+    <div class="sidebar-logo">
+      Prosper's Services
+      <span>Perth, WA</span>
+    </div>
+    <a href="index.html" class="sidebar-item">
+      <i class="ti ti-home"></i> Home
+    </a>
+    <a href="booking.html" class="sidebar-item active">
+      <i class="ti ti-calendar"></i> Book
+    </a>
+    <a href="index.html#reviews" class="sidebar-item">
+      <i class="ti ti-star"></i> Reviews
+    </a>
+    <a href="index.html#contact" class="sidebar-item">
+      <i class="ti ti-phone"></i> Contact
+    </a>
+  </nav>
+
+  <header class="page-header">
+    <a href="index.html" class="btn-back">← Back to Home</a>
+    <h1>🌿 Gardening</h1>
   </header>
-  <main class="service-content">
-    <section>
-      <h2>Our Gardening Services</h2>
-      <ul class="service-list">
-        <li>✔️Lawn mowing and edging</li>
-        <li>✔️Pruning bushes and trees</li>
-        <li>✔️Leaf removal and yard cleanup</li>
-        <li>✔️Weed control and mulching</li>
-      </ul>
-      <p><b>Whether it's regular upkeep or a one-time job, we've got you covered. We treat your yard like it's our own!</b></p>
-    </section>
+
+  <main class="page-content">
+    <h2>Our Gardening Services</h2>
+    <ul class="service-list">
+      <li><span>✔️</span> Lawn mowing and edging</li>
+      <li><span>✔️</span> Pruning bushes and trees</li>
+      <li><span>✔️</span> Leaf removal and yard cleanup</li>
+      <li><span>✔️</span> Weed control and mulching</li>
+    </ul>
+    <div class="page-note">
+      Whether it's regular upkeep or a one-time job, we've got you covered. We treat your yard like it's our own!
+    </div>
+    <div class="contact-strip">
+      <div class="contact-strip-icon">📞</div>
+      <div><p>Call or text to book</p><strong>0426 001 023</strong></div>
+    </div>
+    <br/>
+    <a href="booking.html" class="btn-primary" style="display:block;text-align:center;">Book This Service</a>
   </main>
-  <l></l>Contact Me @ 0426001023<l></l>
-  <footer>
-    <p>&copy; 2025 Prosper's Services</p>
-  </footer>
+
+  <footer><p>&copy; 2025 Prosper's Services</p></footer>
+
+  <!-- Mobile Bottom Nav -->
+  <nav class="bottom-nav">
+    <a href="index.html" class="nav-item"><i class="ti ti-home"></i>Home</a>
+    <a href="booking.html" class="nav-item"><i class="ti ti-calendar"></i>Book</a>
+    <a href="index.html#reviews" class="nav-item"><i class="ti ti-star"></i>Reviews</a>
+    <a href="index.html#contact" class="nav-item"><i class="ti ti-phone"></i>Contact</a>
+  </nav>
+
 </body>
 </html>
