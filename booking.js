@@ -14,20 +14,44 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const bookingsRef = collection(db, "bookings");
 
-const slotsDiv        = document.getElementById("times");
-const serviceSelect   = document.getElementById("service");
-const subServiceSelect= document.getElementById("subService");
-const subContainer    = document.getElementById("subServiceContainer");
-const morningBtn      = document.getElementById("morningBtn");
-const noonBtn         = document.getElementById("noonBtn");
-const timeLabel       = document.getElementById("timeLabel");
-const periodContainer = document.getElementById("periodContainer");
+const slotsDiv         = document.getElementById("times");
+const serviceSelect    = document.getElementById("service");
+const subServiceSelect = document.getElementById("subService");
+const subContainer     = document.getElementById("subServiceContainer");
+const morningBtn       = document.getElementById("morningBtn");
+const noonBtn          = document.getElementById("noonBtn");
+const timeLabel        = document.getElementById("timeLabel");
+const periodContainer  = document.getElementById("periodContainer");
 
 let selectedDate   = null;
 let startTime      = null;
 let endTime        = null;
 let selectedPeriod = null;
 
+/* ── AVAILABILITY ──────────────────────────────────────────
+   0 = Sun, 1 = Mon, 2 = Tue, 3 = Wed, 4 = Thu, 5 = Fri, 6 = Sat
+   "unavailable" → red, not clickable
+   "limited"     → yellow, 16:00–17:00 only
+   "open"        → green, full day
+──────────────────────────────────────────────────────────── */
+const DAY_STATUS = {
+  0: "open",        // Sunday
+  1: "limited",     // Monday   (4–5 pm only)
+  2: "unavailable", // Tuesday
+  3: "unavailable", // Wednesday
+  4: "limited",     // Thursday (4–5 pm only)
+  5: "unavailable", // Friday
+  6: "open"         // Saturday
+};
+
+function getDayStatus(dateStr) {
+  // dateStr is "YYYY-MM-DD"
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const day = new Date(y, m - 1, d).getDay();
+  return DAY_STATUS[day];
+}
+
+/* ── SERVICES ─────────────────────────────────────────────── */
 const serviceOptions = {
   "Pressure Cleaning": ["Driveway / Paths","Car","Bins","Boat"],
   "Gardening":         ["Lawn Mowing & Edging","Pruning Trees/Bushes","Leaf Cleanup"],
@@ -46,12 +70,21 @@ serviceSelect.onchange = () => {
   });
 };
 
+/* ── TIME HELPERS ─────────────────────────────────────────── */
 function toMinutes(t) {
   const [h, m] = t.split(":");
   return parseInt(h) * 60 + parseInt(m);
 }
 
-function generateSlotsForPeriod(period) {
+function generateSlotsForPeriod(period, dateStr) {
+  const status = getDayStatus(dateStr);
+
+  // Limited days: only 16:00–17:00 regardless of period
+  if (status === "limited") {
+    return ["16:00", "16:30", "17:00"];
+  }
+
+  // Open days: normal morning / afternoon slots
   const slots = [];
   const [start, end] = period === "morning" ? ["08:30","12:00"] : ["12:30","17:00"];
   let minutes = toMinutes(start);
@@ -74,6 +107,7 @@ function getContinuousEndTimes(start, allowedSlots, bookedSlots) {
   return valid;
 }
 
+/* ── MONTH BOOKING CACHE ──────────────────────────────────── */
 let monthBookings = {};
 
 async function loadMonthBookings(year, month) {
@@ -89,11 +123,40 @@ async function loadMonthBookings(year, month) {
   });
 }
 
+/* ── FLATPICKR ────────────────────────────────────────────── */
 flatpickr("#datePicker", {
   minDate: "today",
   dateFormat: "Y-m-d",
-  onReady: async (_, __, fp) => { await loadMonthBookings(fp.currentYear, fp.currentMonth); },
-  onMonthChange: async (_, __, fp) => { await loadMonthBookings(fp.currentYear, fp.currentMonth); },
+
+  // Colour each day circle
+  onDayCreate: function(dObj, dStr, fp, dayElem) {
+    const dateStr = fp.formatDate(dayElem.dateObj, "Y-m-d");
+    const status  = getDayStatus(dateStr);
+
+    if (status === "unavailable") {
+      dayElem.style.backgroundColor = "#e74c3c";
+      dayElem.style.color = "#fff";
+      dayElem.style.borderRadius = "50%";
+      dayElem.classList.add("flatpickr-disabled");
+      dayElem.style.pointerEvents = "none";
+      dayElem.style.opacity = "0.6";
+    } else if (status === "limited") {
+      dayElem.style.backgroundColor = "#f0c040";
+      dayElem.style.color = "#1a1a2e";
+      dayElem.style.borderRadius = "50%";
+    } else if (status === "open") {
+      dayElem.style.backgroundColor = "#27ae60";
+      dayElem.style.color = "#fff";
+      dayElem.style.borderRadius = "50%";
+    }
+  },
+
+  onReady: async (_, __, fp) => {
+    await loadMonthBookings(fp.currentYear, fp.currentMonth);
+  },
+  onMonthChange: async (_, __, fp) => {
+    await loadMonthBookings(fp.currentYear, fp.currentMonth);
+  },
   onChange: async (_, dateStr) => {
     selectedDate = dateStr;
     startTime = null; endTime = null; selectedPeriod = null;
@@ -101,22 +164,36 @@ flatpickr("#datePicker", {
     timeLabel.style.display = "none";
     morningBtn.classList.remove("selected");
     noonBtn.classList.remove("selected");
+
+    const status = getDayStatus(dateStr);
+
+    if (status === "unavailable") {
+      periodContainer.style.display = "none";
+      slotsDiv.innerHTML = "<p style='font-size:13px;color:#e74c3c;font-weight:600;'>Not available on this day.</p>";
+      return;
+    }
+
+    if (status === "limited") {
+      // Skip period buttons, show 4–5pm slots directly
+      periodContainer.style.display = "none";
+      timeLabel.style.display = "block";
+      await renderSlots("noon", dateStr); // period arg doesn't matter for limited
+      return;
+    }
+
+    // Open day — show morning/afternoon buttons
     periodContainer.style.display = "block";
   }
 });
 
-async function showTimes(period) {
-  if (!selectedDate) { alert("Please select a date first."); return; }
-  selectedPeriod = period;
-  morningBtn.classList.toggle("selected", period === "morning");
-  noonBtn.classList.toggle("selected", period === "noon");
-
-  timeLabel.style.display = "block";
+/* ── RENDER TIME SLOTS ────────────────────────────────────── */
+async function renderSlots(period, dateStr) {
   slotsDiv.innerHTML = "Loading...";
 
-  const allowedSlots = generateSlotsForPeriod(period);
-  const bookings = monthBookings[selectedDate] || [];
-  const booked = [];
+  const allowedSlots = generateSlotsForPeriod(period, dateStr);
+  const bookings     = monthBookings[dateStr] || [];
+  const booked       = [];
+
   bookings.forEach(b => {
     allowedSlots.forEach(slot => {
       if (toMinutes(slot) < toMinutes(b.end) && toMinutes(slot) + 30 > toMinutes(b.start))
@@ -129,7 +206,6 @@ async function showTimes(period) {
   allowedSlots.forEach(time => {
     if (booked.includes(time)) return;
     const div = document.createElement("div");
-    // Use .time-slot so CSS styles apply correctly
     div.className = "time-slot";
     div.textContent = time;
     div.dataset.time = time;
@@ -162,7 +238,7 @@ async function showTimes(period) {
         });
         return;
       }
-      // Reset and pick new start
+      // Reset
       startTime = time; endTime = null;
       document.querySelectorAll(".time-slot").forEach(s => {
         s.classList.remove("selected");
@@ -179,9 +255,20 @@ async function showTimes(period) {
     slotsDiv.innerHTML = "<p style='font-size:13px;color:var(--muted)'>All times booked in this period.</p>";
 }
 
+/* ── PERIOD BUTTONS ───────────────────────────────────────── */
+async function showTimes(period) {
+  if (!selectedDate) { alert("Please select a date first."); return; }
+  selectedPeriod = period;
+  morningBtn.classList.toggle("selected", period === "morning");
+  noonBtn.classList.toggle("selected", period === "noon");
+  timeLabel.style.display = "block";
+  await renderSlots(period, selectedDate);
+}
+
 morningBtn.onclick = () => showTimes("morning");
 noonBtn.onclick    = () => showTimes("noon");
 
+/* ── CONFIRM BOOKING ──────────────────────────────────────── */
 document.getElementById("book").onclick = async () => {
   const name       = document.getElementById("bookingName").value.trim();
   const phone      = document.getElementById("bookingPhone").value.trim();
