@@ -134,19 +134,16 @@ flatpickr("#datePicker", {
     const status  = getDayStatus(dateStr);
 
     if (status === "unavailable") {
-      dayElem.style.backgroundColor = "#e74c3c";
-      dayElem.style.color = "#fff";
+      dayElem.style.border = "2px solid #e74c3c";
       dayElem.style.borderRadius = "50%";
       dayElem.classList.add("flatpickr-disabled");
       dayElem.style.pointerEvents = "none";
       dayElem.style.opacity = "0.6";
     } else if (status === "limited") {
-      dayElem.style.backgroundColor = "#f0c040";
-      dayElem.style.color = "#1a1a2e";
+      dayElem.style.border = "2px solid #f0c040";
       dayElem.style.borderRadius = "50%";
     } else if (status === "open") {
-      dayElem.style.backgroundColor = "#27ae60";
-      dayElem.style.color = "#fff";
+      dayElem.style.border = "2px solid #27ae60";
       dayElem.style.borderRadius = "50%";
     }
   },
