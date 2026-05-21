@@ -128,10 +128,14 @@ flatpickr("#datePicker", {
   minDate: "today",
   dateFormat: "Y-m-d",
 
-  // Hide past dates completely
+  // Hide dates outside the current displayed month and past dates
   onDayCreate: function(dObj, dStr, fp, dayElem) {
-    const today   = new Date(); today.setHours(0,0,0,0);
-    if (dayElem.dateObj < today) {
+    const today        = new Date(); today.setHours(0,0,0,0);
+    const displayMonth = fp.currentMonth;
+    const displayYear  = fp.currentYear;
+    const isOtherMonth = dayElem.dateObj.getMonth() !== displayMonth ||
+                         dayElem.dateObj.getFullYear() !== displayYear;
+    if (isOtherMonth || dayElem.dateObj < today) {
       dayElem.style.visibility = "hidden";
       dayElem.style.pointerEvents = "none";
       return;
