@@ -128,8 +128,14 @@ flatpickr("#datePicker", {
   minDate: "today",
   dateFormat: "Y-m-d",
 
-  // Colour each day circle
+  // Hide past dates completely
   onDayCreate: function(dObj, dStr, fp, dayElem) {
+    const today   = new Date(); today.setHours(0,0,0,0);
+    if (dayElem.dateObj < today) {
+      dayElem.style.visibility = "hidden";
+      dayElem.style.pointerEvents = "none";
+      return;
+    }
     const dateStr = fp.formatDate(dayElem.dateObj, "Y-m-d");
     const status  = getDayStatus(dateStr);
 
