@@ -12,15 +12,17 @@
 <body>
 
   <!-- Desktop Top Nav -->
-  <nav class="desktop-nav">
-    <span class="nav-brand">🌿 Prosper's Services</span>
-    <ul class="nav-links">
-      <li><a href="index.html">Home</a></li>
-      <li><a href="index.html#services">Services</a></li>
-      <li><a href="index.html#reviews">Reviews</a></li>
-      <li><a href="index.html#contact">Contact</a></li>
-      <li><a href="booking.html" class="nav-cta active">Book Now</a></li>
-    </ul>
+  <nav class="top-nav">
+    <div class="top-nav-inner">
+      <div class="top-nav-logo">🌿 Prosper's Services</div>
+      <div class="top-nav-links">
+        <a href="index.html#services">Services</a>
+        <a href="index.html#about">About</a>
+        <a href="index.html#reviews">Reviews</a>
+        <a href="index.html#contact">Contact</a>
+        <a href="booking.html" class="nav-book-btn active">Book Now</a>
+      </div>
+    </div>
   </nav>
 
   <header class="page-header">
@@ -29,78 +31,71 @@
   </header>
 
   <main>
-    <!-- Desktop: two-column grid wrapping steps 1+2 and step 3 -->
-    <div class="booking-desktop-grid">
-
-      <div>
-        <!-- Step 1: Your Details -->
-        <section class="booking-section">
-          <h2>Your Details</h2>
-          <div class="form-card">
-            <div>
-              <label class="form-label">Full Name *</label>
-              <input type="text" id="bookingName" placeholder="John Smith" />
-            </div>
-            <div>
-              <label class="form-label">Phone Number</label>
-              <input type="tel" id="bookingPhone" placeholder="04XX XXX XXX" />
-            </div>
-          </div>
-        </section>
-
-        <!-- Step 2: Service -->
-        <section class="booking-section" style="padding-top:0">
-          <h2>Service</h2>
-          <div class="form-card">
-            <div>
-              <label class="form-label">Service Type *</label>
-              <select id="service">
-                <option value="">Select a service...</option>
-                <option value="Pressure Cleaning">Pressure Cleaning</option>
-                <option value="Gardening">Gardening</option>
-                <option value="Gutter Cleaning">Gutter Cleaning</option>
-              </select>
-            </div>
-            <div id="subServiceContainer" style="display:none">
-              <label class="form-label">Specific Service</label>
-              <select id="subService"></select>
-            </div>
-          </div>
-        </section>
-      </div>
-
-      <!-- Step 3: Date & Time -->
-      <section class="booking-section" style="padding-top:0">
-        <h2>Date & Time</h2>
-        <div class="form-card">
-          <div>
-            <label class="form-label">Pick a Date *</label>
-            <input type="text" id="datePicker" placeholder="Select date..." readonly />
-          </div>
-          <div id="periodContainer" style="display:none">
-            <label class="form-label">Time of Day</label>
-            <div class="period-btns">
-              <button class="period-btn" id="morningBtn">☀️ Morning</button>
-              <button class="period-btn" id="noonBtn">🌤 Afternoon</button>
-            </div>
-            <label class="form-label" id="timeLabel" style="display:none;margin-bottom:8px;">Select Start & End Time</label>
-            <div class="time-grid" id="times"></div>
-          </div>
+    <!-- Step 1: Your Details -->
+    <section class="booking-section">
+      <h2>Your Details</h2>
+      <div class="form-card">
+        <div>
+          <label class="form-label">Full Name *</label>
+          <input type="text" id="bookingName" placeholder="John Smith" />
         </div>
-      </section>
+        <div>
+          <label class="form-label">Phone Number</label>
+          <input type="tel" id="bookingPhone" placeholder="04XX XXX XXX" />
+        </div>
+      </div>
+    </section>
 
-    </div>
+    <!-- Step 2: Service -->
+    <section class="booking-section" style="padding-top:0">
+      <h2>Service</h2>
+      <div class="form-card">
+        <div>
+          <label class="form-label">Service Type *</label>
+          <select id="service">
+            <option value="">Select a service...</option>
+            <option value="Pressure Cleaning">Pressure Cleaning</option>
+            <option value="Gardening">Gardening</option>
+            <option value="Gutter Cleaning">Gutter Cleaning</option>
+          </select>
+        </div>
+        <div id="subServiceContainer" style="display:none">
+          <label class="form-label">Specific Service</label>
+          <select id="subService"></select>
+        </div>
+      </div>
+    </section>
 
-    <!-- Book Button (full width) -->
-    <div class="booking-full-width">
+    <!-- Step 3: Date & Time -->
+    <section class="booking-section" style="padding-top:0">
+      <h2>Date & Time</h2>
+      <div class="form-card">
+        <div>
+          <label class="form-label">Pick a Date *</label>
+          <input type="text" id="datePicker" placeholder="Select date..." readonly />
+        </div>
+        <div id="periodContainer" style="display:none">
+          <label class="form-label">Time of Day</label>
+          <div class="period-btns">
+            <button class="period-btn" id="morningBtn">☀️ Morning</button>
+            <button class="period-btn" id="noonBtn">🌤 Afternoon</button>
+          </div>
+          <label class="form-label" id="timeLabel" style="display:none;margin-bottom:8px;">Select Start & End Time</label>
+          <div class="time-grid" id="times"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Confirm -->
+    <section class="booking-section" style="padding-top:0">
       <button class="book-btn" id="book">Confirm Booking</button>
-      <p id="msg" style="margin-top:12px;"></p>
-    </div>
+      <p id="msg"></p>
+    </section>
   </main>
 
   <footer><p>&copy; 2025 Prosper's Services</p></footer>
 
-  <!-- Bottom Nav (mobile only) -->
+  <!-- Mobile Bottom Nav -->
   <nav class="bottom-nav">
     <a href="index.html" class="nav-item"><i class="ti ti-home"></i>Home</a>
     <a href="booking.html" class="nav-item active"><i class="ti ti-calendar"></i>Book</a>
@@ -110,5 +105,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script type="module" src="booking.js"></script>
+
 </body>
 </html>
