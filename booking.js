@@ -1,5 +1,12 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  where
+} from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBv8Iap6L0Zz8U_0k3tQ-Bkb6KI9vGDbtI",
@@ -14,48 +21,37 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const bookingsRef = collection(db, "bookings");
 
-const slotsDiv         = document.getElementById("times");
+/* ---- ELEMENTS ---- */
 const serviceSelect    = document.getElementById("service");
 const subServiceSelect = document.getElementById("subService");
 const subContainer     = document.getElementById("subServiceContainer");
+const slotsDiv         = document.getElementById("times");
 const morningBtn       = document.getElementById("morningBtn");
 const noonBtn          = document.getElementById("noonBtn");
-const timeLabel        = document.getElementById("timeLabel");
 const periodContainer  = document.getElementById("periodContainer");
+const timeSlotSection  = document.getElementById("timeSlotSection");
+const timeLabel        = document.getElementById("timeLabel");
+const msg              = document.getElementById("msg");
 
+/* ---- STATE ---- */
 let selectedDate   = null;
 let startTime      = null;
 let endTime        = null;
-let selectedPeriod = null;
+let selectedPeriod = null; // "morning" | "afternoon"
 
-/* ── AVAILABILITY ──────────────────────────────────────────
-   0 = Sun, 1 = Mon, 2 = Tue, 3 = Wed, 4 = Thu, 5 = Fri, 6 = Sat
-   "unavailable" → red, not clickable
-   "limited"     → yellow, 16:00–17:00 only
-   "open"        → green, full day
-──────────────────────────────────────────────────────────── */
-const DAY_STATUS = {
-  0: "open",        // Sunday
-  1: "limited",     // Monday   (4–5 pm only)
-  2: "unavailable", // Tuesday
-  3: "unavailable", // Wednesday
-  4: "limited",     // Thursday (4–5 pm only)
-  5: "unavailable", // Friday
-  6: "open"         // Saturday
+/* ---- PERIOD CONFIG ---- */
+// Morning:   08:30 – 11:30
+// Afternoon: 12:30 – 17:00
+const PERIODS = {
+  morning:   { start: "08:30", end: "11:30" },
+  afternoon: { start: "12:30", end: "17:00" }
 };
 
-function getDayStatus(dateStr) {
-  // dateStr is "YYYY-MM-DD"
-  const [y, m, d] = dateStr.split("-").map(Number);
-  const day = new Date(y, m - 1, d).getDay();
-  return DAY_STATUS[day];
-}
-
-/* ── SERVICES ─────────────────────────────────────────────── */
+/* ---- SUB-SERVICES ---- */
 const serviceOptions = {
-  "Pressure Cleaning": ["Driveway / Paths","Car","Bins","Boat"],
-  "Gardening":         ["Lawn Mowing & Edging","Pruning Trees/Bushes","Leaf Cleanup"],
-  "Gutter Cleaning":   ["Single Storey House","Double Storey House"]
+  "Pressure Cleaning": ["Driveway / Paths", "Car", "Bins", "Boat"],
+  "Gardening":         ["Lawn Mowing & Edging", "Pruning Trees/Bushes", "Leaf Cleanup"],
+  "Gutter Cleaning":   ["Single Storey House", "Double Storey House"]
 };
 
 serviceSelect.onchange = () => {
@@ -63,41 +59,43 @@ serviceSelect.onchange = () => {
   subServiceSelect.innerHTML = "";
   if (!serviceOptions[selected]) { subContainer.style.display = "none"; return; }
   subContainer.style.display = "block";
-  serviceOptions[selected].forEach(opt => {
-    const o = document.createElement("option");
-    o.value = opt; o.textContent = opt;
-    subServiceSelect.appendChild(o);
+  serviceOptions[selected].forEach(option => {
+    const opt = document.createElement("option");
+    opt.value = option; opt.textContent = option;
+    subServiceSelect.appendChild(opt);
   });
 };
 
-/* ── TIME HELPERS ─────────────────────────────────────────── */
+/* ---- HELPERS ---- */
 function toMinutes(t) {
   const [h, m] = t.split(":");
   return parseInt(h) * 60 + parseInt(m);
 }
 
-function generateSlotsForPeriod(period, dateStr) {
-  const status = getDayStatus(dateStr);
+function toLabel(t) {
+  const [h, m] = t.split(":").map(Number);
+  const ampm = h < 12 ? "AM" : "PM";
+  const h12  = h % 12 || 12;
+  return `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
+}
 
-  // Limited days: only 16:00–17:00 regardless of period
-  if (status === "limited") {
-    return ["16:00", "16:30", "17:00"];
-  }
-
-  // Open days: normal morning / afternoon slots
+function generateSlotsForPeriod(period) {
+  const { start, end } = PERIODS[period];
   const slots = [];
-  const [start, end] = period === "morning" ? ["08:30","12:00"] : ["12:30","17:00"];
   let minutes = toMinutes(start);
-  while (minutes <= toMinutes(end)) {
-    const h = Math.floor(minutes / 60), m = minutes % 60;
-    slots.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
+  const last  = toMinutes(end);
+  while (minutes <= last) {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    slots.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
     minutes += 30;
   }
   return slots;
 }
 
 function getContinuousEndTimes(start, allowedSlots, bookedSlots) {
-  const valid = []; let started = false;
+  const valid = [];
+  let started = false;
   for (const slot of allowedSlots) {
     if (slot === start) { started = true; continue; }
     if (!started) continue;
@@ -107,14 +105,14 @@ function getContinuousEndTimes(start, allowedSlots, bookedSlots) {
   return valid;
 }
 
-/* ── MONTH BOOKING CACHE ──────────────────────────────────── */
+/* ---- MONTH BOOKING CACHE ---- */
 let monthBookings = {};
 
 async function loadMonthBookings(year, month) {
   monthBookings = {};
-  const start = `${year}-${String(month+1).padStart(2,'0')}-01`;
-  const end   = `${year}-${String(month+1).padStart(2,'0')}-31`;
-  const q = query(bookingsRef, where("date",">=",start), where("date","<=",end));
+  const start = `${year}-${String(month + 1).padStart(2, "0")}-01`;
+  const end   = `${year}-${String(month + 1).padStart(2, "0")}-31`;
+  const q = query(bookingsRef, where("date", ">=", start), where("date", "<=", end));
   const snap = await getDocs(q);
   snap.forEach(doc => {
     const b = doc.data();
@@ -123,41 +121,10 @@ async function loadMonthBookings(year, month) {
   });
 }
 
-/* ── FLATPICKR ────────────────────────────────────────────── */
+/* ---- FLATPICKR ---- */
 flatpickr("#datePicker", {
   minDate: "today",
   dateFormat: "Y-m-d",
-
-  // Hide dates outside the current displayed month and past dates
-  onDayCreate: function(dObj, dStr, fp, dayElem) {
-    const today        = new Date(); today.setHours(0,0,0,0);
-    const displayMonth = fp.currentMonth;
-    const displayYear  = fp.currentYear;
-    const isOtherMonth = dayElem.dateObj.getMonth() !== displayMonth ||
-                         dayElem.dateObj.getFullYear() !== displayYear;
-    if (isOtherMonth || dayElem.dateObj < today) {
-      dayElem.style.visibility = "hidden";
-      dayElem.style.pointerEvents = "none";
-      return;
-    }
-    const dateStr = fp.formatDate(dayElem.dateObj, "Y-m-d");
-    const status  = getDayStatus(dateStr);
-
-    if (status === "unavailable") {
-      dayElem.style.border = "2px solid #e74c3c";
-      dayElem.style.borderRadius = "50%";
-      dayElem.classList.add("flatpickr-disabled");
-      dayElem.style.pointerEvents = "none";
-      dayElem.style.opacity = "0.6";
-    } else if (status === "limited") {
-      dayElem.style.border = "2px solid #f0c040";
-      dayElem.style.borderRadius = "50%";
-    } else if (status === "open") {
-      dayElem.style.border = "2px solid #27ae60";
-      dayElem.style.borderRadius = "50%";
-    }
-  },
-
   onReady: async (_, __, fp) => {
     await loadMonthBookings(fp.currentYear, fp.currentMonth);
   },
@@ -165,137 +132,192 @@ flatpickr("#datePicker", {
     await loadMonthBookings(fp.currentYear, fp.currentMonth);
   },
   onChange: async (_, dateStr) => {
-    selectedDate = dateStr;
-    startTime = null; endTime = null; selectedPeriod = null;
+    selectedDate   = dateStr;
+    startTime      = null;
+    endTime        = null;
+    selectedPeriod = null;
+
     slotsDiv.innerHTML = "";
-    timeLabel.style.display = "none";
+    if (timeSlotSection) timeSlotSection.style.display = "none";
+    if (timeLabel) {
+      timeLabel.style.display  = "none";
+      timeLabel.textContent    = "Select Start & End Time";
+    }
+
     morningBtn.classList.remove("selected");
     noonBtn.classList.remove("selected");
-
-    const status = getDayStatus(dateStr);
-
-    if (status === "unavailable") {
-      periodContainer.style.display = "none";
-      slotsDiv.innerHTML = "<p style='font-size:13px;color:#e74c3c;font-weight:600;'>Not available on this day.</p>";
-      return;
-    }
-
-    if (status === "limited") {
-      // Skip period buttons, show 4–5pm slots directly
-      periodContainer.style.display = "none";
-      timeLabel.style.display = "block";
-      await renderSlots("noon", dateStr); // period arg doesn't matter for limited
-      return;
-    }
-
-    // Open day — show morning/afternoon buttons
     periodContainer.style.display = "block";
   }
 });
 
-/* ── RENDER TIME SLOTS ────────────────────────────────────── */
-async function renderSlots(period, dateStr) {
+/* ---- SHOW TIME SLOTS ---- */
+async function showTimes(period) {
+  if (!selectedDate) { alert("Please select a date first."); return; }
+
+  selectedPeriod = period;
+  startTime      = null;
+  endTime        = null;
+
+  morningBtn.classList.toggle("selected",  period === "morning");
+  noonBtn.classList.toggle("selected",     period === "afternoon");
+
+  if (timeSlotSection) timeSlotSection.style.display = "block";
+
+  if (timeLabel) {
+    timeLabel.style.display = "block";
+    timeLabel.textContent   = "Select a start time";
+  }
+
   slotsDiv.innerHTML = "Loading...";
 
-  const allowedSlots = generateSlotsForPeriod(period, dateStr);
-  const bookings     = monthBookings[dateStr] || [];
+  const allowedSlots = generateSlotsForPeriod(period);
+  const bookings     = monthBookings[selectedDate] || [];
   const booked       = [];
 
   bookings.forEach(b => {
     allowedSlots.forEach(slot => {
-      if (toMinutes(slot) < toMinutes(b.end) && toMinutes(slot) + 30 > toMinutes(b.start))
+      if (toMinutes(slot) < toMinutes(b.end) && toMinutes(slot) + 30 > toMinutes(b.start)) {
         booked.push(slot);
+      }
     });
   });
 
   slotsDiv.innerHTML = "";
 
   allowedSlots.forEach(time => {
-    if (booked.includes(time)) return;
     const div = document.createElement("div");
-    div.className = "time-slot";
-    div.textContent = time;
+    div.className    = "time-slot";
+    div.textContent  = toLabel(time);
     div.dataset.time = time;
 
-    div.onclick = () => {
-      if (!startTime) {
-        startTime = time; endTime = null;
-        document.querySelectorAll(".time-slot").forEach(s => {
-          s.classList.remove("selected");
-          s.style.opacity = "1";
-          s.style.pointerEvents = "auto";
-        });
-        div.classList.add("selected");
-        const validEnds = getContinuousEndTimes(startTime, allowedSlots, booked);
-        document.querySelectorAll(".time-slot").forEach(s => {
-          if (s.dataset.time !== startTime && !validEnds.includes(s.dataset.time)) {
-            s.style.opacity = "0.3";
-            s.style.pointerEvents = "none";
-          }
-        });
-        return;
-      }
-      if (!endTime) {
-        if (toMinutes(time) <= toMinutes(startTime)) return;
-        endTime = time;
-        document.querySelectorAll(".time-slot").forEach(s => {
-          const t = s.dataset.time;
-          if (toMinutes(t) >= toMinutes(startTime) && toMinutes(t) <= toMinutes(endTime))
-            s.classList.add("selected");
-        });
-        return;
-      }
-      // Reset
-      startTime = time; endTime = null;
-      document.querySelectorAll(".time-slot").forEach(s => {
-        s.classList.remove("selected");
-        s.style.opacity = "1";
-        s.style.pointerEvents = "auto";
-      });
-      div.classList.add("selected");
-    };
+    if (booked.includes(time)) {
+      div.classList.add("booked");
+    } else {
+      div.onclick = () => handleSlotClick(time, allowedSlots, booked);
+    }
 
     slotsDiv.appendChild(div);
   });
 
-  if (!slotsDiv.children.length)
-    slotsDiv.innerHTML = "<p style='font-size:13px;color:var(--muted)'>All times booked in this period.</p>";
+  if (!slotsDiv.children.length) {
+    slotsDiv.innerHTML = "<p style='font-size:13px;color:var(--muted);grid-column:1/-1;'>All times are booked for this period.</p>";
+  }
 }
 
-/* ── PERIOD BUTTONS ───────────────────────────────────────── */
-async function showTimes(period) {
-  if (!selectedDate) { alert("Please select a date first."); return; }
-  selectedPeriod = period;
-  morningBtn.classList.toggle("selected", period === "morning");
-  noonBtn.classList.toggle("selected", period === "noon");
-  timeLabel.style.display = "block";
-  await renderSlots(period, selectedDate);
+/* ---- SLOT CLICK LOGIC ---- */
+function handleSlotClick(time, allowedSlots, booked) {
+  const allSlots = document.querySelectorAll(".time-slot");
+
+  // No start yet → set start
+  if (!startTime) {
+    startTime = time;
+    endTime   = null;
+    refreshSlotStyles(allowedSlots, booked);
+    updateLabel();
+    return;
+  }
+
+  // Start set, no end → set end (must be after start)
+  if (!endTime) {
+    if (toMinutes(time) <= toMinutes(startTime)) {
+      // Treat as a new start
+      startTime = time;
+      refreshSlotStyles(allowedSlots, booked);
+      updateLabel();
+      return;
+    }
+    endTime = time;
+    refreshSlotStyles(allowedSlots, booked);
+    updateLabel();
+    return;
+  }
+
+  // Both set → start over with new start
+  startTime = time;
+  endTime   = null;
+  refreshSlotStyles(allowedSlots, booked);
+  updateLabel();
+}
+
+function refreshSlotStyles(allowedSlots, booked) {
+  const validEnds = startTime && !endTime
+    ? getContinuousEndTimes(startTime, allowedSlots, booked)
+    : [];
+
+  document.querySelectorAll(".time-slot").forEach(s => {
+    const t = s.dataset.time;
+    s.classList.remove("selected", "in-range");
+
+    if (booked.includes(t)) {
+      s.style.opacity       = "1";
+      s.style.pointerEvents = "none";
+      return;
+    }
+
+    if (endTime) {
+      // Range is locked — restore full interactivity
+      s.style.opacity       = "1";
+      s.style.pointerEvents = "auto";
+      const mins = toMinutes(t);
+      if (t === startTime || t === endTime) s.classList.add("selected");
+      else if (mins > toMinutes(startTime) && mins < toMinutes(endTime)) s.classList.add("in-range");
+    } else if (startTime) {
+      // Waiting for end — dim invalid slots
+      if (t === startTime) {
+        s.classList.add("selected");
+        s.style.opacity       = "1";
+        s.style.pointerEvents = "auto";
+      } else if (validEnds.includes(t)) {
+        s.style.opacity       = "1";
+        s.style.pointerEvents = "auto";
+      } else {
+        s.style.opacity       = "0.3";
+        s.style.pointerEvents = "none";
+      }
+    } else {
+      s.style.opacity       = "1";
+      s.style.pointerEvents = "auto";
+    }
+  });
+}
+
+function updateLabel() {
+  if (!timeLabel) return;
+  if (startTime && endTime) {
+    timeLabel.textContent = `✅ ${toLabel(startTime)} → ${toLabel(endTime)}`;
+  } else if (startTime) {
+    timeLabel.textContent = `Start: ${toLabel(startTime)} — now pick an end time`;
+  } else {
+    timeLabel.textContent = "Select a start time";
+  }
 }
 
 morningBtn.onclick = () => showTimes("morning");
-noonBtn.onclick    = () => showTimes("noon");
+noonBtn.onclick    = () => showTimes("afternoon");
 
-/* ── CONFIRM BOOKING ──────────────────────────────────────── */
+/* ---- CONFIRM BOOKING ---- */
 document.getElementById("book").onclick = async () => {
   const name       = document.getElementById("bookingName").value.trim();
   const phone      = document.getElementById("bookingPhone").value.trim();
   const service    = serviceSelect.value;
   const subService = subServiceSelect.value;
-  const msg        = document.getElementById("msg");
 
   if (!name || !selectedDate || !startTime || !endTime || !service) {
     msg.textContent = "Please fill in all fields and select a start & end time.";
-    msg.style.color = "#e74c3c";
+    msg.style.color = "var(--red)";
     return;
   }
 
   await addDoc(bookingsRef, {
     name, phone, service, subService,
-    date: selectedDate, start: startTime, end: endTime,
+    date:    selectedDate,
+    start:   startTime,
+    end:     endTime,
+    period:  selectedPeriod,
     created: new Date()
   });
 
-  msg.textContent = "✅ Booking confirmed!";
-  msg.style.color = "#1e3c72";
-  setTimeout(() => location.reload(), 2000);
+  msg.textContent = "✅ Booking confirmed! We'll be in touch.";
+  msg.style.color = "var(--navy)";
+  setTimeout(() => location.reload(), 2500);
 };
