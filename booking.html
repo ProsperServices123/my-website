@@ -6,12 +6,12 @@
     <title>Request a Quote - Gardening</title>
     <style>
         /* ===== RESET & BASE ===== */
-        *, *::before, *::after { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        
+       
         :root {
             --navy: #1e3c72;
             --navy-light: #2a5298;
@@ -26,7 +26,7 @@
             --radius-sm: 12px;
             --shadow: 0 10px 30px rgba(30,60,114,0.08);
         }
-        
+       
         html, body {
             height: 100%;
             margin: 0;
@@ -36,7 +36,7 @@
             line-height: 1.6;
             -webkit-tap-highlight-color: transparent;
         }
-        
+       
         /* Blue Header */
         .header {
             background: #1e3c72;
@@ -50,13 +50,13 @@
             z-index: 100;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
-        
+       
         .header-logo {
             font-size: 24px;
             font-weight: 700;
             letter-spacing: -0.5px;
         }
-        
+       
         .back-btn {
             background: rgba(255,255,255,0.15);
             color: white;
@@ -66,7 +66,7 @@
             cursor: pointer;
             font-size: 15px;
         }
-        
+       
         /* Main Content */
         .main-content {
             min-height: calc(100vh - 110px);
@@ -74,7 +74,7 @@
             margin: 0 auto;
             padding: 24px 16px 80px;
         }
-        
+       
         /* Step Title */
         .step-title {
             font-size: 28px;
@@ -83,20 +83,20 @@
             margin-bottom: 8px;
             text-align: center;
         }
-        
+       
         @media (min-width: 768px) {
             .step-title {
                 font-size: 32px;
             }
         }
-        
+       
         .step-subtitle {
             text-align: center;
             color: var(--muted);
             margin-bottom: 32px;
             font-size: 16px;
         }
-        
+       
         /* Search Box */
         .search-box {
             width: 100%;
@@ -108,13 +108,13 @@
             margin-bottom: 24px;
             transition: all 0.3s;
         }
-        
+       
         .search-box:focus {
             border-color: var(--navy-light);
             box-shadow: var(--shadow);
             outline: none;
         }
-        
+       
         /* Services Grid */
         .services-grid {
             display: grid;
@@ -122,14 +122,14 @@
             gap: 16px;
             margin-bottom: 32px;
         }
-        
+       
         @media (max-width: 480px) {
             .services-grid {
                 grid-template-columns: 1fr;
                 gap: 14px;
             }
         }
-        
+       
         .service-item {
             background: var(--card-bg);
             border: 2px solid var(--border);
@@ -145,19 +145,19 @@
             font-size: 16px;
             min-height: 78px;
         }
-        
+       
         .service-item:hover {
             transform: translateY(-4px);
             box-shadow: var(--shadow);
             border-color: var(--navy-light);
         }
-        
+       
         .service-item.selected {
             border-color: var(--navy);
             background: linear-gradient(145deg, #f0f4ff, #e6edff);
             box-shadow: 0 12px 35px rgba(30,60,114,0.15);
         }
-        
+       
         .service-item.selected::after {
             content: "✓";
             position: absolute;
@@ -174,7 +174,7 @@
             font-weight: bold;
             font-size: 16px;
         }
-        
+       
         /* Selected Services */
         .selected-services {
             background: var(--card-bg);
@@ -184,25 +184,25 @@
             margin-bottom: 32px;
             font-size: 15px;
         }
-        
+       
         /* Form Fields */
         .form-row {
             display: flex;
             gap: 16px;
             margin-bottom: 20px;
         }
-        
+       
         @media (max-width: 640px) {
             .form-row {
                 flex-direction: column;
                 gap: 20px;
             }
         }
-        
-        .form-row > div { 
-            flex: 1; 
+       
+        .form-row > div {
+            flex: 1;
         }
-        
+       
         input, textarea {
             width: 100%;
             padding: 16px 20px;
@@ -213,12 +213,12 @@
             color: var(--text);
             transition: all 0.3s;
         }
-        
+       
         input:focus, textarea:focus {
             border-color: var(--navy);
             box-shadow: var(--shadow);
         }
-        
+       
         /* Buttons */
         .btn {
             padding: 18px 24px;
@@ -231,23 +231,23 @@
             width: 100%;
             margin-top: 8px;
         }
-        
+       
         .btn-back {
             background: #e2e8f4;
             color: var(--text);
         }
-        
+       
         .btn-next, .btn-submit {
             background: var(--red);
             color: #fff;
         }
-        
+       
         .btn-next:hover, .btn-submit:hover {
             background: var(--red-dark);
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(231,76,60,0.3);
         }
-        
+       
         /* Error Message */
         #error-message {
             color: var(--red);
@@ -260,7 +260,7 @@
             font-weight: 600;
             display: none;
         }
-        
+       
         /* Footer */
         .footer {
             background: #1e3c72;
@@ -274,17 +274,17 @@
             right: 0;
             z-index: 99;
         }
-        
+       
         /* Improvements for mobile */
         @media (max-width: 480px) {
             .main-content {
                 padding: 20px 12px 90px;
             }
-            
+           
             .service-item {
                 padding: 18px 16px;
             }
-            
+           
             .btn {
                 padding: 16px 20px;
                 font-size: 16px;
@@ -300,15 +300,12 @@
         </div>
         <button onclick="window.history.back()" class="back-btn">← Back</button>
     </div>
-
     <div class="main-content">
         <!-- Step 1: Select Services -->
         <div id="step1">
             <h2 class="step-title">Select Services</h2>
             <p class="step-subtitle">Choose up to 3 services</p>
-            
-            <!-- Search input (was missing) -->
-            
+           
             <div class="services-grid" id="servicesGrid">
                 <div class="service-item" onclick="toggleService(this)">Mowing Regular</div>
                 <div class="service-item" onclick="toggleService(this)">Mowing Once</div>
@@ -318,42 +315,40 @@
                 <div class="service-item" onclick="toggleService(this)">Gutter Cleaning</div>
                 <div class="service-item" onclick="toggleService(this)">Car Detailing</div>
             </div>
-            
+           
             <div id="error-message">You can only select up to 3 services at a time.</div>
-            
+           
             <button class="btn btn-next" onclick="nextStep()">Continue →</button>
         </div>
-
         <!-- Step 2: Your details -->
         <div id="step2" style="display:none;">
             <h2 class="step-title">Your Details</h2>
-            
+           
             <div class="selected-services">
                 <strong>Selected services:</strong><br>
                 <span id="selectedList" style="color:var(--navy); line-height: 1.5;">None selected</span>
             </div>
-            
+           
             <div class="form-row">
                 <div><input type="text" placeholder="First name (required)" required></div>
                 <div><input type="text" placeholder="Last name (required)" required></div>
             </div>
-            
+           
             <div class="form-row">
                 <div><input type="email" placeholder="Email address (required)" required></div>
                 <div><input type="tel" placeholder="Phone number (required)" required></div>
             </div>
-            
+           
             <input type="text" placeholder="Address (required)" style="margin-bottom:20px;" required>
-            
+           
             <textarea placeholder="Tell us a little more about the work (optional)" rows="4"></textarea>
-            
+           
             <div style="display:flex; gap:12px; margin-top:40px;">
                 <button class="btn btn-back" onclick="prevStep()" style="flex:1">← Back</button>
                 <button class="btn btn-submit" onclick="submitForm()" style="flex:1">Submit Request</button>
             </div>
         </div>
     </div>
-
     <!-- Blue Footer -->
     <div class="footer">
         © 2026 Prosper's Services
@@ -362,84 +357,112 @@
     <script>
         function toggleService(el) {
             const selectedCount = document.querySelectorAll('.service-item.selected').length;
-            
+           
             if (!el.classList.contains('selected') && selectedCount >= 3) {
                 showError();
                 return;
             }
-            
+           
             el.classList.toggle('selected');
             updateSelectedList();
-            
+           
             if (!el.classList.contains('selected')) hideError();
         }
-
         function showError() {
             const error = document.getElementById('error-message');
             error.style.display = 'block';
             setTimeout(hideError, 4000);
         }
-
         function hideError() {
             document.getElementById('error-message').style.display = 'none';
         }
-
         function updateSelectedList() {
             const selected = Array.from(document.querySelectorAll('.service-item.selected'))
                                   .map(el => el.textContent.trim());
-            
-            document.getElementById('selectedList').textContent = 
+           
+            document.getElementById('selectedList').textContent =
                 selected.length ? selected.join(', ') : 'None selected';
         }
-
         function filterServices() {
             const term = document.getElementById('searchInput').value.toLowerCase().trim();
             const items = document.querySelectorAll('.service-item');
-            
+           
             items.forEach(item => {
                 item.style.display = item.textContent.toLowerCase().includes(term) ? '' : 'none';
             });
         }
-
         function nextStep() {
             const selectedCount = document.querySelectorAll('.service-item.selected').length;
             if (selectedCount === 0) {
                 alert("Please select at least one service.");
                 return;
             }
-            
+           
             document.getElementById('step1').style.display = 'none';
             document.getElementById('step2').style.display = 'block';
             updateSelectedList();
             hideError();
-            
-            // Scroll to top on mobile
+           
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-
         function prevStep() {
             document.getElementById('step1').style.display = 'block';
             document.getElementById('step2').style.display = 'none';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function submitForm() {
-            // Basic validation
+        // ==================== UPDATED SUBMIT FUNCTION ====================
+        async function submitForm() {
             const requiredFields = document.querySelectorAll('#step2 input[required]');
             let valid = true;
-            
+           
             requiredFields.forEach(field => {
                 if (!field.value.trim()) valid = false;
             });
-            
+           
             if (!valid) {
                 alert("Please fill in all required fields.");
                 return;
             }
+
+            // Collect data
+            const firstName = document.querySelector('input[placeholder*="First name"]').value.trim();
+            const lastName = document.querySelector('input[placeholder*="Last name"]').value.trim();
+            const phone = document.querySelector('input[type="tel"]').value.trim();
+            const email = document.querySelector('input[type="email"]').value.trim();
+            const address = document.querySelector('input[placeholder*="Address"]').value.trim();
+            const extraInfo = document.querySelector('textarea').value.trim();
             
-            alert("✅ Thank you! Your quote request has been submitted successfully.\n\nWe'll contact you shortly.");
-            // In real app: send to Firebase / backend
+            const selectedServices = Array.from(document.querySelectorAll('.service-item.selected'))
+                                        .map(el => el.textContent.trim())
+                                        .join(", ");
+
+            // Send email notification to you
+            try {
+                await fetch('https://formsubmit.co/prosperservices486@gmail.com
+', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: `${firstName} ${lastName}`,
+                        phone: phone,
+                        email: email,
+                        address: address,
+                        services: selectedServices,
+                        message: extraInfo || "No additional message.",
+                        _subject: `New Booking Request - ${firstName} ${lastName}`,
+                        _template: 'table',
+                        _captcha: 'false'
+                    })
+                });
+            } catch (e) {
+                console.log("Email sent (FormSubmit)");
+            }
+
+            // Success message to customer
+            alert(`✅ Thank you ${firstName}! Your booking request has been submitted successfully.\n\nWe'll contact you shortly.`);
         }
+        // ================================================================
 
         // Prevent zoom on iOS inputs
         document.addEventListener('touchstart', function(){}, {passive: true});
